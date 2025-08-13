@@ -24,6 +24,12 @@ inventory_store = {}
 sales_store = {}
 user_store = {}
 shop_config_store = {}
+license_keys_store = {
+    # Sample license keys - in production, these would be generated and managed
+    "MBM-2024-STARTER-001": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
+    "MBM-2024-PREMIUM-001": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
+    "MBM-2024-BASIC-001": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
+}
 
 # Pakistani Battery Brands with sample data
 BATTERY_BRANDS = [
