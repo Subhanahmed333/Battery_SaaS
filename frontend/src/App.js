@@ -61,14 +61,8 @@ class OfflineStorage {
     localStorage.setItem(`murick_shop_config_${shopId}`, JSON.stringify(config));
   }
 
-  static getShops() {
-    const data = localStorage.getItem('murick_shops');
-    return data ? JSON.parse(data) : [];
-  }
-
-  static saveShops(shops) {
-    localStorage.setItem('murick_shops', JSON.stringify(shops));
-  }
+  // REMOVED: getShops() and saveShops() methods for security
+  // These methods created vulnerabilities by exposing all shops
 }
 
 // Shop Setup Component
