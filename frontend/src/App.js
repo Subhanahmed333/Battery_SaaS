@@ -17,35 +17,53 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 
 // Offline Storage Manager
 class OfflineStorage {
-  static getInventory() {
-    const data = localStorage.getItem('murick_inventory');
+  static getInventory(shopId) {
+    const data = localStorage.getItem(`murick_inventory_${shopId}`);
     return data ? JSON.parse(data) : [];
   }
 
-  static saveInventory(inventory) {
-    localStorage.setItem('murick_inventory', JSON.stringify(inventory));
+  static saveInventory(shopId, inventory) {
+    localStorage.setItem(`murick_inventory_${shopId}`, JSON.stringify(inventory));
   }
 
-  static getSales() {
-    const data = localStorage.getItem('murick_sales');
+  static getSales(shopId) {
+    const data = localStorage.getItem(`murick_sales_${shopId}`);
     return data ? JSON.parse(data) : [];
   }
 
-  static saveSales(sales) {
-    localStorage.setItem('murick_sales', JSON.stringify(sales));
+  static saveSales(shopId, sales) {
+    localStorage.setItem(`murick_sales_${shopId}`, JSON.stringify(sales));
   }
 
   static getUser() {
-    const data = localStorage.getItem('murick_user');
+    const data = localStorage.getItem('murick_current_user');
     return data ? JSON.parse(data) : null;
   }
 
   static saveUser(user) {
-    localStorage.setItem('murick_user', JSON.stringify(user));
+    localStorage.setItem('murick_current_user', JSON.stringify(user));
   }
 
   static clearUser() {
-    localStorage.removeItem('murick_user');
+    localStorage.removeItem('murick_current_user');
+  }
+
+  static getShopConfig(shopId) {
+    const data = localStorage.getItem(`murick_shop_config_${shopId}`);
+    return data ? JSON.parse(data) : null;
+  }
+
+  static saveShopConfig(shopId, config) {
+    localStorage.setItem(`murick_shop_config_${shopId}`, JSON.stringify(config));
+  }
+
+  static getShops() {
+    const data = localStorage.getItem('murick_shops');
+    return data ? JSON.parse(data) : [];
+  }
+
+  static saveShops(shops) {
+    localStorage.setItem('murick_shops', JSON.stringify(shops));
   }
 }
 
