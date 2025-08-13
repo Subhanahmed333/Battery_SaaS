@@ -23,6 +23,7 @@ app.add_middleware(
 inventory_store = {}
 sales_store = {}
 user_store = {}
+shop_config_store = {}
 
 # Pakistani Battery Brands with sample data
 BATTERY_BRANDS = [
