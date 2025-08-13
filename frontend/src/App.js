@@ -2143,4 +2143,331 @@ function AnalyticsView({ inventory, sales, user }) {
   );
 }
 
+// Settings View Component
+function SettingsView({ user, onRefresh }) {
+  const [shopConfig, setShopConfig] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({});
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: '',
+    password: '',
+    name: '',
+    role: 'cashier'
+  });
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Load shop configuration
+  useEffect(() => {
+    if (user?.shop_id) {
+      const config = OfflineStorage.getShopConfig(user.shop_id);
+      setShopConfig(config);
+      setEditData(config || {});
+    }
+  }, [user]);
+
+  const handleSaveShopDetails = () => {
+    if (user?.shop_id && editData) {
+      const updatedConfig = {
+        ...shopConfig,
+        ...editData,
+        shop_id: user.shop_id // Ensure shop_id doesn't change
+      };
+      OfflineStorage.saveShopConfig(user.shop_id, updatedConfig);
+      setShopConfig(updatedConfig);
+      setIsEditing(false);
+      setMessage({ type: 'success', text: 'Shop details updated successfully!' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  const handleAddUser = () => {
+    if (user?.shop_id && shopConfig) {
+      // Check if username already exists
+      const existingUser = shopConfig.users?.find(u => u.username === newUser.username);
+      if (existingUser) {
+        setMessage({ type: 'error', text: 'Username already exists!' });
+        return;
+      }
+
+      const updatedConfig = {
+        ...shopConfig,
+        users: [...(shopConfig.users || []), newUser]
+      };
+      
+      OfflineStorage.saveShopConfig(user.shop_id, updatedConfig);
+      setShopConfig(updatedConfig);
+      setNewUser({ username: '', password: '', name: '', role: 'cashier' });
+      setIsAddUserOpen(false);
+      setMessage({ type: 'success', text: 'User added successfully!' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  const handleRemoveUser = (username) => {
+    if (user?.shop_id && shopConfig && username !== user.username) {
+      const updatedConfig = {
+        ...shopConfig,
+        users: shopConfig.users?.filter(u => u.username !== username) || []
+      };
+      
+      OfflineStorage.saveShopConfig(user.shop_id, updatedConfig);
+      setShopConfig(updatedConfig);
+      setMessage({ type: 'success', text: 'User removed successfully!' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    }
+  };
+
+  if (!shopConfig) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Loading shop configuration...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-gray-800">Settings</h1>
+        <div className="flex items-center space-x-2">
+          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+            Shop ID: {user?.shop_id}
+          </Badge>
+        </div>
+      </div>
+
+      {message.text && (
+        <Alert className={message.type === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+          <AlertDescription className={message.type === 'success' ? 'text-green-700' : 'text-red-700'}>
+            {message.text}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Shop Details Section */}
+      <Card className="border-orange-200 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center space-x-2">
+              <Store className="h-5 w-5 text-orange-500" />
+              <span>Shop Details</span>
+            </span>
+            <Button
+              variant={isEditing ? "outline" : "default"}
+              size="sm"
+              onClick={() => {
+                if (isEditing) {
+                  setEditData(shopConfig);
+                }
+                setIsEditing(!isEditing);
+              }}
+              className={!isEditing ? "bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700" : ""}
+            >
+              {isEditing ? 'Cancel' : 'Edit'}
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditing ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Shop Name</Label>
+                <Input
+                  value={editData.shop_name || ''}
+                  onChange={(e) => setEditData({...editData, shop_name: e.target.value})}
+                  className="border-orange-200 focus:border-orange-400"
+                />
+              </div>
+              <div>
+                <Label>Proprietor Name</Label>
+                <Input
+                  value={editData.proprietor_name || ''}
+                  onChange={(e) => setEditData({...editData, proprietor_name: e.target.value})}
+                  className="border-orange-200 focus:border-orange-400"
+                />
+              </div>
+              <div>
+                <Label>Contact Number</Label>
+                <Input
+                  value={editData.contact_number || ''}
+                  onChange={(e) => setEditData({...editData, contact_number: e.target.value})}
+                  className="border-orange-200 focus:border-orange-400"
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={editData.email || ''}
+                  onChange={(e) => setEditData({...editData, email: e.target.value})}
+                  className="border-orange-200 focus:border-orange-400"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Address</Label>
+                <Input
+                  value={editData.address || ''}
+                  onChange={(e) => setEditData({...editData, address: e.target.value})}
+                  className="border-orange-200 focus:border-orange-400"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Button
+                  onClick={handleSaveShopDetails}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="font-semibold text-gray-600">Shop Name:</p>
+                <p className="text-gray-800">{shopConfig.shop_name}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-600">Proprietor:</p>
+                <p className="text-gray-800">{shopConfig.proprietor_name}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-600">Contact:</p>
+                <p className="text-gray-800">{shopConfig.contact_number}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-600">Email:</p>
+                <p className="text-gray-800">{shopConfig.email || 'Not provided'}</p>
+              </div>
+              <div className="md:col-span-2">
+                <p className="font-semibold text-gray-600">Address:</p>
+                <p className="text-gray-800">{shopConfig.address}</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* User Management Section */}
+      <Card className="border-orange-200 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center space-x-2">
+              <User className="h-5 w-5 text-orange-500" />
+              <span>User Management</span>
+            </span>
+            <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add User
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New User</DialogTitle>
+                  <DialogDescription>Create a new user account for this shop</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Username</Label>
+                    <Input
+                      value={newUser.username}
+                      onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                      placeholder="Enter username"
+                      className="border-orange-200 focus:border-orange-400"
+                    />
+                  </div>
+                  <div>
+                    <Label>Password</Label>
+                    <Input
+                      type="password"
+                      value={newUser.password}
+                      onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                      placeholder="Enter password"
+                      className="border-orange-200 focus:border-orange-400"
+                    />
+                  </div>
+                  <div>
+                    <Label>Full Name</Label>
+                    <Input
+                      value={newUser.name}
+                      onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                      placeholder="Enter full name"
+                      className="border-orange-200 focus:border-orange-400"
+                    />
+                  </div>
+                  <div>
+                    <Label>Role</Label>
+                    <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value})}>
+                      <SelectTrigger className="border-orange-200 focus:border-orange-400">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="owner">Owner</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="cashier">Cashier</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    onClick={handleAddUser}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                    disabled={!newUser.username || !newUser.password || !newUser.name}
+                  >
+                    Add User
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {shopConfig.users?.map((shopUser, index) => (
+              <Card key={index} className="border-gray-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">{shopUser.name}</h4>
+                        <p className="text-sm text-gray-600">@{shopUser.username}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={shopUser.username === user.username ? "default" : "secondary"}>
+                        {shopUser.role}
+                      </Badge>
+                      {shopUser.username === user.username && (
+                        <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                          Current User
+                        </Badge>
+                      )}
+                      {shopUser.username !== user.username && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleRemoveUser(shopUser.username)}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default App;
