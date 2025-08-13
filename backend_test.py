@@ -259,6 +259,353 @@ class MurickBatteryAPITester:
         
         return success, response
 
+    # ===== NEW ENHANCED AUTHENTICATION & SHOP CONFIGURATION TESTS =====
+    
+    def test_setup_shop_1(self):
+        """Test setting up first shop"""
+        self.shop_id_1 = f"shop_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": self.shop_id_1,
+            "shop_name": "Khan Battery Center",
+            "proprietor_name": "Muhammad Khan",
+            "contact_number": "03001234567",
+            "address": "Main Market, Lahore, Punjab",
+            "email": "khan.batteries@gmail.com",
+            "tax_number": "TAX123456789",
+            "users": []
+        }
+        
+        success, response = self.run_test(
+            "Setup Shop 1",
+            "POST",
+            "api/setup-shop",
+            200,
+            data=shop_data
+        )
+        
+        if success:
+            print(f"   Shop ID: {self.shop_id_1}")
+        
+        return success, response
+
+    def test_setup_shop_2(self):
+        """Test setting up second shop for multi-shop testing"""
+        self.shop_id_2 = f"shop_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": self.shop_id_2,
+            "shop_name": "Ahmed Auto Parts",
+            "proprietor_name": "Ahmed Ali",
+            "contact_number": "03009876543",
+            "address": "GT Road, Karachi, Sindh",
+            "email": "ahmed.autoparts@gmail.com",
+            "tax_number": "TAX987654321",
+            "users": []
+        }
+        
+        success, response = self.run_test(
+            "Setup Shop 2",
+            "POST",
+            "api/setup-shop",
+            200,
+            data=shop_data
+        )
+        
+        if success:
+            print(f"   Shop ID: {self.shop_id_2}")
+        
+        return success, response
+
+    def test_get_shop_config(self):
+        """Test retrieving shop configuration"""
+        if not self.shop_id_1:
+            print("❌ Cannot test shop config - no shop ID available")
+            return False, {}
+        
+        def check_shop_config(data):
+            required_fields = ['shop_id', 'shop_name', 'proprietor_name', 'contact_number', 'address']
+            return all(field in data for field in required_fields)
+        
+        success, response = self.run_test(
+            "Get Shop Configuration",
+            "GET",
+            f"api/shop-config/{self.shop_id_1}",
+            200,
+            check_response=check_shop_config
+        )
+        
+        if success:
+            print(f"   Shop Name: {response.get('shop_name')}")
+            print(f"   Proprietor: {response.get('proprietor_name')}")
+        
+        return success, response
+
+    def test_update_shop_config(self):
+        """Test updating shop configuration"""
+        if not self.shop_id_1:
+            print("❌ Cannot test shop config update - no shop ID available")
+            return False, {}
+        
+        updated_shop_data = {
+            "shop_id": self.shop_id_1,
+            "shop_name": "Khan Battery Center - Updated",
+            "proprietor_name": "Muhammad Khan",
+            "contact_number": "03001234567",
+            "address": "New Location, Main Market, Lahore, Punjab",
+            "email": "khan.batteries.updated@gmail.com",
+            "tax_number": "TAX123456789",
+            "users": []
+        }
+        
+        return self.run_test(
+            "Update Shop Configuration",
+            "PUT",
+            f"api/shop-config/{self.shop_id_1}",
+            200,
+            data=updated_shop_data
+        )
+
+    def test_add_users_to_shop_1(self):
+        """Test adding multiple users to shop 1"""
+        if not self.shop_id_1:
+            print("❌ Cannot test add users - no shop ID available")
+            return False, {}
+        
+        users_to_add = [
+            {
+                "username": "admin_khan",
+                "password": "admin123",
+                "name": "Muhammad Khan",
+                "role": "admin"
+            },
+            {
+                "username": "manager_ali",
+                "password": "manager123",
+                "name": "Ali Hassan",
+                "role": "manager"
+            },
+            {
+                "username": "cashier_sara",
+                "password": "cashier123",
+                "name": "Sara Ahmed",
+                "role": "cashier"
+            }
+        ]
+        
+        all_success = True
+        for user in users_to_add:
+            success, response = self.run_test(
+                f"Add User {user['username']} to Shop 1",
+                "POST",
+                f"api/add-user/{self.shop_id_1}",
+                200,
+                data=user
+            )
+            if success:
+                self.test_users.append({**user, "shop_id": self.shop_id_1})
+            all_success = all_success and success
+        
+        return all_success, {}
+
+    def test_add_users_to_shop_2(self):
+        """Test adding users to shop 2"""
+        if not self.shop_id_2:
+            print("❌ Cannot test add users - no shop ID available")
+            return False, {}
+        
+        users_to_add = [
+            {
+                "username": "admin_ahmed",
+                "password": "admin456",
+                "name": "Ahmed Ali",
+                "role": "admin"
+            },
+            {
+                "username": "cashier_fatima",
+                "password": "cashier456",
+                "name": "Fatima Sheikh",
+                "role": "cashier"
+            }
+        ]
+        
+        all_success = True
+        for user in users_to_add:
+            success, response = self.run_test(
+                f"Add User {user['username']} to Shop 2",
+                "POST",
+                f"api/add-user/{self.shop_id_2}",
+                200,
+                data=user
+            )
+            if success:
+                self.test_users.append({**user, "shop_id": self.shop_id_2})
+            all_success = all_success and success
+        
+        return all_success, {}
+
+    def test_duplicate_username_prevention(self):
+        """Test that duplicate usernames are prevented within a shop"""
+        if not self.shop_id_1:
+            print("❌ Cannot test duplicate username - no shop ID available")
+            return False, {}
+        
+        duplicate_user = {
+            "username": "admin_khan",  # This should already exist
+            "password": "different123",
+            "name": "Different Name",
+            "role": "manager"
+        }
+        
+        return self.run_test(
+            "Prevent Duplicate Username",
+            "POST",
+            f"api/add-user/{self.shop_id_1}",
+            400,  # Should fail with 400
+            data=duplicate_user
+        )
+
+    def test_authentication_success(self):
+        """Test successful authentication for various users"""
+        if not self.test_users:
+            print("❌ Cannot test authentication - no test users available")
+            return False, {}
+        
+        all_success = True
+        for user in self.test_users[:3]:  # Test first 3 users
+            auth_data = {
+                "shop_id": user["shop_id"],
+                "username": user["username"],
+                "password": user["password"]
+            }
+            
+            def check_auth_response(data):
+                return (
+                    data.get('message') == 'Authentication successful' and
+                    'user' in data and
+                    data['user']['username'] == user['username'] and
+                    data['user']['shop_id'] == user['shop_id']
+                )
+            
+            success, response = self.run_test(
+                f"Authenticate {user['username']}",
+                "POST",
+                "api/authenticate",
+                200,
+                data=auth_data,
+                check_response=check_auth_response
+            )
+            
+            if success:
+                print(f"   User: {response['user']['name']}")
+                print(f"   Role: {response['user']['role']}")
+                print(f"   Shop: {response['user']['shop_name']}")
+            
+            all_success = all_success and success
+        
+        return all_success, {}
+
+    def test_authentication_invalid_credentials(self):
+        """Test authentication with invalid credentials"""
+        if not self.shop_id_1:
+            print("❌ Cannot test invalid auth - no shop ID available")
+            return False, {}
+        
+        invalid_auth_data = {
+            "shop_id": self.shop_id_1,
+            "username": "admin_khan",
+            "password": "wrongpassword"
+        }
+        
+        return self.run_test(
+            "Authentication with Invalid Password",
+            "POST",
+            "api/authenticate",
+            401,  # Should fail with 401
+            data=invalid_auth_data
+        )
+
+    def test_authentication_invalid_shop(self):
+        """Test authentication with invalid shop ID"""
+        invalid_auth_data = {
+            "shop_id": "nonexistent_shop",
+            "username": "admin_khan",
+            "password": "admin123"
+        }
+        
+        return self.run_test(
+            "Authentication with Invalid Shop",
+            "POST",
+            "api/authenticate",
+            404,  # Should fail with 404
+            data=invalid_auth_data
+        )
+
+    def test_cross_shop_authentication(self):
+        """Test that users cannot authenticate across different shops"""
+        if not self.shop_id_1 or not self.shop_id_2:
+            print("❌ Cannot test cross-shop auth - missing shop IDs")
+            return False, {}
+        
+        # Try to authenticate shop 1 user with shop 2 ID
+        cross_auth_data = {
+            "shop_id": self.shop_id_2,
+            "username": "admin_khan",  # This user belongs to shop 1
+            "password": "admin123"
+        }
+        
+        return self.run_test(
+            "Cross-Shop Authentication (Should Fail)",
+            "POST",
+            "api/authenticate",
+            401,  # Should fail with 401
+            data=cross_auth_data
+        )
+
+    def test_shop_config_not_found(self):
+        """Test retrieving configuration for non-existent shop"""
+        return self.run_test(
+            "Get Non-existent Shop Config",
+            "GET",
+            "api/shop-config/nonexistent_shop",
+            404  # Should fail with 404
+        )
+
+    def test_update_nonexistent_shop(self):
+        """Test updating configuration for non-existent shop"""
+        shop_data = {
+            "shop_id": "nonexistent_shop",
+            "shop_name": "Test Shop",
+            "proprietor_name": "Test Owner",
+            "contact_number": "1234567890",
+            "address": "Test Address"
+        }
+        
+        return self.run_test(
+            "Update Non-existent Shop Config",
+            "PUT",
+            "api/shop-config/nonexistent_shop",
+            404,  # Should fail with 404
+            data=shop_data
+        )
+
+    def test_add_user_to_nonexistent_shop(self):
+        """Test adding user to non-existent shop"""
+        user_data = {
+            "username": "test_user",
+            "password": "test123",
+            "name": "Test User",
+            "role": "cashier"
+        }
+        
+        return self.run_test(
+            "Add User to Non-existent Shop",
+            "POST",
+            "api/add-user/nonexistent_shop",
+            404,  # Should fail with 404
+            data=user_data
+        )
+
 def main():
     print("🚀 Starting Murick Battery SaaS API Tests")
     print("=" * 50)
