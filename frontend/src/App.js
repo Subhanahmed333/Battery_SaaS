@@ -433,6 +433,7 @@ function ShopSetupScreen({ onSetupComplete }) {
       </Card>
     </div>
   );
+  }
 }
 
 // REMOVED: ShopSelectionScreen component for security reasons
