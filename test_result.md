@@ -148,6 +148,30 @@
         - agent: "main"
         - comment: "Replaced hardcoded users with scalable shop-based auth. Added shop setup wizard, shop selection screen, and proper authentication flow"
 
+  - task: "Security fixes - Remove vulnerable shop selection screen"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "Need to remove shop selection screen that shows all shops to unauthorized users. Replace with direct login requiring Shop ID + Username + Password"
+
+  - task: "Settings section for shop management"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "Add settings section to allow authenticated users to manage their shop details"
+
   - task: "Receipt printing functionality"
     implemented: true
     working: true
