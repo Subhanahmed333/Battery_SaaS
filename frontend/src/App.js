@@ -348,12 +348,13 @@ function ShopSetupScreen({ onSetupComplete }) {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <User className="h-10 w-10 text-white" />
+  if (step === 3) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <User className="h-10 w-10 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
             Create Admin Account
