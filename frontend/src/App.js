@@ -491,7 +491,6 @@ function App() {
   // Load offline data
   useEffect(() => {
     const savedUser = OfflineStorage.getUser();
-    const shops = OfflineStorage.getShops();
     
     if (savedUser && savedUser.shop_id) {
       // User is logged in
@@ -500,12 +499,9 @@ function App() {
       setInventory(OfflineStorage.getInventory(savedUser.shop_id));
       setSales(OfflineStorage.getSales(savedUser.shop_id));
       setAppState('main');
-    } else if (shops.length === 0) {
-      // No shops configured
-      setAppState('shop-setup');
     } else {
-      // Show shop selection
-      setAppState('shop-select');
+      // Show secure login screen (no shop selection for security)
+      setAppState('login');
     }
     
     setIsLoading(false);
