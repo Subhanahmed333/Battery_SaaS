@@ -14,6 +14,7 @@ class MurickBatteryAPITester:
         self.shop_id_1 = None
         self.shop_id_2 = None
         self.test_users = []
+        self.generated_license_key = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, check_response=None):
         """Run a single API test"""
