@@ -2,6 +2,7 @@ import requests
 import sys
 import json
 from datetime import datetime
+import uuid
 
 class MurickBatteryAPITester:
     def __init__(self, base_url="https://powerstock-offline.preview.emergentagent.com"):
@@ -10,6 +11,9 @@ class MurickBatteryAPITester:
         self.tests_passed = 0
         self.battery_id = None
         self.sale_id = None
+        self.shop_id_1 = None
+        self.shop_id_2 = None
+        self.test_users = []
 
     def run_test(self, name, method, endpoint, expected_status, data=None, check_response=None):
         """Run a single API test"""
