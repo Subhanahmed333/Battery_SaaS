@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Plus, Package, ShoppingCart, BarChart3, AlertTriangle, Battery, Store, Menu, X, Home, TrendingUp, Eye, EyeOff, Zap, DollarSign, Calendar, Filter, Search, User, LogOut, Sun, Moon } from 'lucide-react';
+import { Plus, Package, ShoppingCart, BarChart3, AlertTriangle, Battery, Store, Menu, X, Home, TrendingUp, Eye, EyeOff, Zap, DollarSign, Calendar, Filter, Search, User, LogOut, Sun, Moon, Printer, Download, FileText } from 'lucide-react';
 import './App.css';
 
 // Import Shadcn components
