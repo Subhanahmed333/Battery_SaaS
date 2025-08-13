@@ -95,6 +95,76 @@ class AuthRequest(BaseModel):
 async def health():
     return {"status": "healthy", "message": "Murick Battery SaaS API is running"}
 
+# Shop Configuration Management
+@app.post("/api/setup-shop")
+async def setup_shop(shop_config: ShopConfig):
+    shop_config.created_date = datetime.now()
+    shop_config_store[shop_config.shop_id] = shop_config.dict()
+    return {"message": "Shop setup completed successfully", "shop_id": shop_config.shop_id}
+
+@app.get("/api/shop-config/{shop_id}")
+async def get_shop_config(shop_id: str):
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    return shop_config_store[shop_id]
+
+@app.put("/api/shop-config/{shop_id}")
+async def update_shop_config(shop_id: str, shop_config: ShopConfig):
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    shop_config.shop_id = shop_id
+    shop_config.created_date = shop_config_store[shop_id]["created_date"]
+    shop_config_store[shop_id] = shop_config.dict()
+    return {"message": "Shop configuration updated successfully"}
+
+@app.post("/api/authenticate")
+async def authenticate_user(auth_request: AuthRequest):
+    shop_id = auth_request.shop_id
+    username = auth_request.username
+    password = auth_request.password
+    
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    shop_config = shop_config_store[shop_id]
+    
+    # Check if user exists in shop's user list
+    for user in shop_config.get("users", []):
+        if user["username"] == username and user["password"] == password:
+            return {
+                "message": "Authentication successful",
+                "user": {
+                    "username": user["username"],
+                    "name": user["name"],
+                    "role": user["role"],
+                    "shop_id": shop_id,
+                    "shop_name": shop_config["shop_name"]
+                }
+            }
+    
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+
+@app.post("/api/add-user/{shop_id}")
+async def add_user_to_shop(shop_id: str, user_data: dict):
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    shop_config = shop_config_store[shop_id]
+    
+    # Check if username already exists
+    for existing_user in shop_config.get("users", []):
+        if existing_user["username"] == user_data["username"]:
+            raise HTTPException(status_code=400, detail="Username already exists")
+    
+    if "users" not in shop_config:
+        shop_config["users"] = []
+    
+    shop_config["users"].append(user_data)
+    shop_config_store[shop_id] = shop_config
+    
+    return {"message": "User added successfully"}
+
 # Battery Brands and Capacities
 @app.get("/api/battery-brands")
 async def get_battery_brands():
