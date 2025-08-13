@@ -75,7 +75,6 @@ class OfflineStorage {
 function ShopSetupScreen({ onSetupComplete }) {
   const [step, setStep] = useState(1);
   const [shopData, setShopData] = useState({
-    shop_id: '',
     shop_name: '',
     proprietor_name: '',
     contact_number: '',
@@ -105,14 +104,14 @@ function ShopSetupScreen({ onSetupComplete }) {
     // Save shop configuration locally
     OfflineStorage.saveShopConfig(shopId, completeShopData);
     
-    // Add to shops list
-    const shops = OfflineStorage.getShops();
-    shops.push({
+    // Save shop credentials for direct access (more secure)
+    const shopAccess = {
       shop_id: shopId,
       shop_name: shopData.shop_name,
-      proprietor_name: shopData.proprietor_name
-    });
-    OfflineStorage.saveShops(shops);
+      admin_username: adminUser.username,
+      setup_date: new Date().toISOString()
+    };
+    OfflineStorage.saveShopAccess(shopAccess);
 
     onSetupComplete(shopId);
   };
@@ -206,31 +205,31 @@ function ShopSetupScreen({ onSetupComplete }) {
             <User className="h-10 w-10 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            Create Admin User
+            Create Admin Account
           </CardTitle>
-          <CardDescription className="text-gray-600">Set up your admin account</CardDescription>
+          <CardDescription className="text-gray-600">Set up your login credentials</CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
           <form onSubmit={handleShopSubmit} className="space-y-4">
             <div>
-              <Label>Admin Username</Label>
+              <Label>Username</Label>
               <Input
                 value={adminUser.username}
                 onChange={(e) => setAdminUser({...adminUser, username: e.target.value})}
-                placeholder="admin"
+                placeholder="Choose a username"
                 className="border-orange-200 focus:border-orange-400"
                 required
               />
             </div>
             
             <div>
-              <Label>Admin Password</Label>
+              <Label>Password</Label>
               <Input
                 type="password"
                 value={adminUser.password}
                 onChange={(e) => setAdminUser({...adminUser, password: e.target.value})}
-                placeholder="Strong password"
+                placeholder="Choose a strong password"
                 className="border-orange-200 focus:border-orange-400"
                 required
                 minLength={6}
@@ -238,7 +237,7 @@ function ShopSetupScreen({ onSetupComplete }) {
             </div>
             
             <div>
-              <Label>Admin Name</Label>
+              <Label>Your Name</Label>
               <Input
                 value={adminUser.name}
                 onChange={(e) => setAdminUser({...adminUser, name: e.target.value})}
@@ -254,6 +253,12 @@ function ShopSetupScreen({ onSetupComplete }) {
                 <AlertDescription className="text-red-700">{error}</AlertDescription>
               </Alert>
             )}
+
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertDescription className="text-blue-700">
+                <strong>Important:</strong> Remember these credentials - you'll use them to login to your shop.
+              </AlertDescription>
+            </Alert>
 
             <div className="flex space-x-2">
               <Button 
