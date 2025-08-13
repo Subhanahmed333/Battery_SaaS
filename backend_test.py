@@ -606,6 +606,337 @@ class MurickBatteryAPITester:
             data=user_data
         )
 
+    # ===== LICENSE KEY SYSTEM TESTS =====
+    
+    def test_validate_valid_license_key(self):
+        """Test validating a valid, unused license key"""
+        license_data = {
+            "license_key": "MBM-2024-STARTER-001"
+        }
+        
+        def check_license_validation(data):
+            return (
+                data.get('valid') == True and
+                data.get('plan') == 'starter' and
+                'message' in data
+            )
+        
+        return self.run_test(
+            "Validate Valid License Key (MBM-2024-STARTER-001)",
+            "POST",
+            "api/validate-license",
+            200,
+            data=license_data,
+            check_response=check_license_validation
+        )
+
+    def test_validate_invalid_license_key(self):
+        """Test validating an invalid license key"""
+        license_data = {
+            "license_key": "INVALID-KEY"
+        }
+        
+        return self.run_test(
+            "Validate Invalid License Key",
+            "POST",
+            "api/validate-license",
+            404,  # Should fail with 404
+            data=license_data
+        )
+
+    def test_setup_shop_with_valid_license(self):
+        """Test setting up shop with valid license key"""
+        self.shop_id_1 = f"shop_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": self.shop_id_1,
+            "shop_name": "Khan Battery Center",
+            "proprietor_name": "Muhammad Khan",
+            "contact_number": "03001234567",
+            "address": "Main Market, Lahore, Punjab",
+            "email": "khan.batteries@gmail.com",
+            "tax_number": "TAX123456789",
+            "users": [],
+            "license_key": "MBM-2024-STARTER-001"
+        }
+        
+        def check_shop_setup(data):
+            return (
+                data.get('message') == 'Shop setup completed successfully' and
+                data.get('shop_id') == self.shop_id_1 and
+                data.get('plan') == 'starter' and
+                data.get('license_activated') == True
+            )
+        
+        success, response = self.run_test(
+            "Setup Shop with Valid License Key",
+            "POST",
+            "api/setup-shop",
+            200,
+            data=shop_data,
+            check_response=check_shop_setup
+        )
+        
+        if success:
+            print(f"   Shop ID: {self.shop_id_1}")
+            print(f"   Plan: {response.get('plan')}")
+            print(f"   License Activated: {response.get('license_activated')}")
+        
+        return success, response
+
+    def test_setup_shop_with_invalid_license(self):
+        """Test setting up shop with invalid license key (should fail)"""
+        shop_id = f"shop_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": shop_id,
+            "shop_name": "Test Shop",
+            "proprietor_name": "Test Owner",
+            "contact_number": "03001111111",
+            "address": "Test Address",
+            "users": [],
+            "license_key": "INVALID-KEY"
+        }
+        
+        return self.run_test(
+            "Setup Shop with Invalid License Key (Should Fail)",
+            "POST",
+            "api/setup-shop",
+            404,  # Should fail with 404
+            data=shop_data
+        )
+
+    def test_validate_used_license_key(self):
+        """Test validating a license key that has already been used"""
+        license_data = {
+            "license_key": "MBM-2024-STARTER-001"  # This should now be used
+        }
+        
+        return self.run_test(
+            "Validate Used License Key (Should Fail)",
+            "POST",
+            "api/validate-license",
+            400,  # Should fail with 400
+            data=license_data
+        )
+
+    def test_setup_shop_with_used_license(self):
+        """Test setting up shop with already used license key (should fail)"""
+        shop_id = f"shop_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": shop_id,
+            "shop_name": "Another Shop",
+            "proprietor_name": "Another Owner",
+            "contact_number": "03002222222",
+            "address": "Another Address",
+            "users": [],
+            "license_key": "MBM-2024-STARTER-001"  # Already used
+        }
+        
+        return self.run_test(
+            "Setup Shop with Used License Key (Should Fail)",
+            "POST",
+            "api/setup-shop",
+            400,  # Should fail with 400
+            data=shop_data
+        )
+
+    def test_setup_second_shop_with_different_license(self):
+        """Test setting up second shop with different valid license key"""
+        self.shop_id_2 = f"shop_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": self.shop_id_2,
+            "shop_name": "Ahmed Auto Parts",
+            "proprietor_name": "Ahmed Ali",
+            "contact_number": "03009876543",
+            "address": "GT Road, Karachi, Sindh",
+            "email": "ahmed.autoparts@gmail.com",
+            "tax_number": "TAX987654321",
+            "users": [],
+            "license_key": "MBM-2024-PREMIUM-001"
+        }
+        
+        def check_shop_setup(data):
+            return (
+                data.get('message') == 'Shop setup completed successfully' and
+                data.get('shop_id') == self.shop_id_2 and
+                data.get('plan') == 'premium' and
+                data.get('license_activated') == True
+            )
+        
+        success, response = self.run_test(
+            "Setup Second Shop with Different License Key",
+            "POST",
+            "api/setup-shop",
+            200,
+            data=shop_data,
+            check_response=check_shop_setup
+        )
+        
+        if success:
+            print(f"   Shop ID: {self.shop_id_2}")
+            print(f"   Plan: {response.get('plan')}")
+        
+        return success, response
+
+    def test_get_license_info_valid(self):
+        """Test retrieving license information for valid license key"""
+        def check_license_info(data):
+            return (
+                data.get('license_key') == 'MBM-2024-STARTER-001' and
+                data.get('plan') == 'starter' and
+                data.get('used') == True and
+                'shop_id' in data and
+                'used_date' in data
+            )
+        
+        return self.run_test(
+            "Get License Info for Valid Key",
+            "GET",
+            "api/license-info/MBM-2024-STARTER-001",
+            200,
+            check_response=check_license_info
+        )
+
+    def test_get_license_info_invalid(self):
+        """Test retrieving license information for invalid license key"""
+        return self.run_test(
+            "Get License Info for Invalid Key",
+            "GET",
+            "api/license-info/INVALID-KEY",
+            404  # Should fail with 404
+        )
+
+    def test_admin_generate_license_valid_admin(self):
+        """Test generating new license key with valid admin key"""
+        admin_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "plan": "basic"
+        }
+        
+        def check_license_generation(data):
+            return (
+                'license_key' in data and
+                data.get('plan') == 'basic' and
+                data.get('message') == 'New license key generated successfully' and
+                data['license_key'].startswith('MBM-2024-BASIC-')
+            )
+        
+        success, response = self.run_test(
+            "Generate License Key with Valid Admin Key",
+            "POST",
+            "api/admin/generate-license",
+            200,
+            data=admin_data,
+            check_response=check_license_generation
+        )
+        
+        if success:
+            self.generated_license_key = response.get('license_key')
+            print(f"   Generated License Key: {self.generated_license_key}")
+        
+        return success, response
+
+    def test_admin_generate_license_invalid_admin(self):
+        """Test generating license key with invalid admin key (should fail)"""
+        admin_data = {
+            "admin_key": "INVALID_ADMIN_KEY",
+            "plan": "basic"
+        }
+        
+        return self.run_test(
+            "Generate License Key with Invalid Admin Key (Should Fail)",
+            "POST",
+            "api/admin/generate-license",
+            401,  # Should fail with 401
+            data=admin_data
+        )
+
+    def test_validate_generated_license_key(self):
+        """Test validating the newly generated license key"""
+        if not hasattr(self, 'generated_license_key'):
+            print("❌ Cannot test generated license - no generated key available")
+            return False, {}
+        
+        license_data = {
+            "license_key": self.generated_license_key
+        }
+        
+        def check_license_validation(data):
+            return (
+                data.get('valid') == True and
+                data.get('plan') == 'basic' and
+                'message' in data
+            )
+        
+        return self.run_test(
+            "Validate Generated License Key",
+            "POST",
+            "api/validate-license",
+            200,
+            data=license_data,
+            check_response=check_license_validation
+        )
+
+    def test_setup_shop_with_generated_license(self):
+        """Test setting up shop with generated license key"""
+        if not hasattr(self, 'generated_license_key'):
+            print("❌ Cannot test shop setup with generated license - no generated key available")
+            return False, {}
+        
+        shop_id = f"shop_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": shop_id,
+            "shop_name": "Generated License Shop",
+            "proprietor_name": "Test Owner",
+            "contact_number": "03003333333",
+            "address": "Test Address for Generated License",
+            "users": [],
+            "license_key": self.generated_license_key
+        }
+        
+        def check_shop_setup(data):
+            return (
+                data.get('message') == 'Shop setup completed successfully' and
+                data.get('plan') == 'basic' and
+                data.get('license_activated') == True
+            )
+        
+        return self.run_test(
+            "Setup Shop with Generated License Key",
+            "POST",
+            "api/setup-shop",
+            200,
+            data=shop_data,
+            check_response=check_shop_setup
+        )
+
+    def test_business_security_multiple_shops_prevention(self):
+        """Test that multiple shops cannot be created without multiple license keys"""
+        # Try to create another shop with the same license key that was already used
+        shop_id = f"shop_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": shop_id,
+            "shop_name": "Unauthorized Shop",
+            "proprietor_name": "Unauthorized Owner",
+            "contact_number": "03004444444",
+            "address": "Unauthorized Address",
+            "users": [],
+            "license_key": "MBM-2024-PREMIUM-001"  # Already used for shop_id_2
+        }
+        
+        return self.run_test(
+            "Prevent Multiple Shops with Same License (Business Security)",
+            "POST",
+            "api/setup-shop",
+            400,  # Should fail with 400
+            data=shop_data
+        )
+
 def main():
     print("🚀 Starting Enhanced Murick Battery SaaS API Tests")
     print("=" * 60)
