@@ -92,8 +92,11 @@ function ShopSetupScreen({ onSetupComplete }) {
   const handleShopSubmit = (e) => {
     e.preventDefault();
     
-    // Generate unique shop ID
-    const shopId = `shop_${Date.now()}`;
+    // Generate unique shop ID with better format
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const shopId = `SHOP-${random}-${timestamp.toString().slice(-6)}`;
+    
     const completeShopData = {
       ...shopData,
       shop_id: shopId,
@@ -101,19 +104,12 @@ function ShopSetupScreen({ onSetupComplete }) {
       created_date: new Date().toISOString()
     };
 
-    // Save shop configuration locally
+    // Save shop configuration locally (no global shop list for security)
     OfflineStorage.saveShopConfig(shopId, completeShopData);
-    
-    // Save shop credentials for direct access (more secure)
-    const shopAccess = {
-      shop_id: shopId,
-      shop_name: shopData.shop_name,
-      admin_username: adminUser.username,
-      setup_date: new Date().toISOString()
-    };
-    OfflineStorage.saveShopAccess(shopAccess);
 
-    onSetupComplete(shopId);
+    // Show the shop ID to user in the next step
+    setStep(3);
+    setShopData({...shopData, shop_id: shopId});
   };
 
   if (step === 1) {
