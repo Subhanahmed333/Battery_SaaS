@@ -694,6 +694,12 @@ function App() {
             user={user}
           />
         )}
+        {currentView === 'settings' && (
+          <SettingsView 
+            user={user}
+            onRefresh={refreshData}
+          />
+        )}
       </main>
     </div>
   );
