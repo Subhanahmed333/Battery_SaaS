@@ -930,6 +930,7 @@ function InventoryView({ inventory, onRefresh, user }) {
               }}
               editingItem={editingItem}
               onCancel={() => setEditingItem(null)}
+              user={user}
             />
           </DialogContent>
         </Dialog>
