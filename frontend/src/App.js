@@ -15,6 +15,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
 
+// Import custom components
+import { Receipt, generateReceiptData } from './components/Receipt';
+import { exportInventoryToExcel, exportSalesToExcel, exportInventoryToPDF, exportSalesToPDF } from './utils/exportUtils';
+
 // Offline Storage Manager
 class OfflineStorage {
   static getInventory(shopId) {
