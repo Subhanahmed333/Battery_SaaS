@@ -361,19 +361,33 @@ const BATTERY_BRANDS = [
 const BATTERY_CAPACITIES = ["35Ah", "45Ah", "55Ah", "65Ah", "70Ah", "80Ah", "100Ah", "120Ah", "135Ah", "150Ah", "180Ah", "200Ah"];
 
 // Login Component
-function LoginScreen({ onLogin }) {
+function LoginScreen({ onLogin, shopId }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
+  const shopConfig = OfflineStorage.getShopConfig(shopId);
+
   const handleLogin = (e) => {
     e.preventDefault();
-    const user = USERS.find(u => u.username === username && u.password === password);
+    
+    if (!shopConfig) {
+      setError('Shop configuration not found');
+      return;
+    }
+
+    // Find user in shop's user list
+    const user = shopConfig.users?.find(u => u.username === username && u.password === password);
     
     if (user) {
-      OfflineStorage.saveUser(user);
-      onLogin(user);
+      const userData = {
+        ...user,
+        shop_id: shopId,
+        shop_name: shopConfig.shop_name
+      };
+      OfflineStorage.saveUser(userData);
+      onLogin(userData);
     } else {
       setError('Wrong username or password!');
     }
@@ -386,7 +400,9 @@ function LoginScreen({ onLogin }) {
           <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
             <Battery className="h-10 w-10 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Welcome to Murick</CardTitle>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+            Login to {shopConfig?.shop_name || 'Shop'}
+          </CardTitle>
           <CardDescription className="text-gray-600">Battery Shop Management System</CardDescription>
         </CardHeader>
         
@@ -439,12 +455,14 @@ function LoginScreen({ onLogin }) {
             </Button>
           </form>
 
-          <div className="text-xs text-gray-500 space-y-1 pt-4 border-t">
-            <p><strong>Demo Accounts:</strong></p>
-            <p>Owner: admin / admin123</p>
-            <p>Manager: manager / manager123</p>
-            <p>Cashier: cashier / cashier123</p>
-          </div>
+          {shopConfig?.users && (
+            <div className="text-xs text-gray-500 space-y-1 pt-4 border-t">
+              <p><strong>Available Users:</strong></p>
+              {shopConfig.users.map((user, index) => (
+                <p key={index}>{user.role}: {user.username}</p>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
