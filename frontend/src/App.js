@@ -1205,17 +1205,17 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
       date_added: editingItem?.date_added || new Date().toISOString()
     };
 
-    const inventory = OfflineStorage.getInventory();
+    const inventory = OfflineStorage.getInventory(user.shop_id);
     
     if (editingItem) {
       // Update existing
       const updatedInventory = inventory.map(item => 
         item.id === editingItem.id ? batteryData : item
       );
-      OfflineStorage.saveInventory(updatedInventory);
+      OfflineStorage.saveInventory(user.shop_id, updatedInventory);
     } else {
       // Add new
-      OfflineStorage.saveInventory([...inventory, batteryData]);
+      OfflineStorage.saveInventory(user.shop_id, [...inventory, batteryData]);
     }
 
     onSuccess();
