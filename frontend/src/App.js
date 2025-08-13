@@ -235,7 +235,7 @@ function ShopSetupScreen({ onSetupComplete }) {
           </CardHeader>
           
           <CardContent className="space-y-4">
-            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); setStep(3); }} className="space-y-4">
               <div>
                 <Label>Shop Name</Label>
                 <Input
