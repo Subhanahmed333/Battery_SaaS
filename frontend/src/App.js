@@ -560,17 +560,8 @@ function App() {
     return <ShopSetupScreen onSetupComplete={handleShopSetup} />;
   }
 
-  if (appState === 'shop-select') {
-    return (
-      <ShopSelectionScreen 
-        onShopSelect={handleShopSelect}
-        onSetupNew={() => setAppState('shop-setup')}
-      />
-    );
-  }
-
   if (appState === 'login') {
-    return <LoginScreen onLogin={handleLogin} shopId={selectedShopId} />;
+    return <SecureLoginScreen onLogin={handleLogin} onSetupNew={() => setAppState('shop-setup')} />;
   }
 
   return (
