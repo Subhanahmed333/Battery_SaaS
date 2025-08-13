@@ -168,6 +168,63 @@ function ShopSetupScreen({ onSetupComplete }) {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Store className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              License Activation
+            </CardTitle>
+            <CardDescription className="text-gray-600">Enter your license key to setup your shop</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <form onSubmit={handleLicenseValidation} className="space-y-4">
+              <div>
+                <Label>License Key</Label>
+                <Input
+                  value={licenseKey}
+                  onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
+                  placeholder="MBM-2024-XXXXX-XXX"
+                  className="border-blue-200 focus:border-blue-400"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Contact your Murick representative to get your license key.
+                </p>
+              </div>
+
+              {error && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                disabled={loading}
+              >
+                {loading ? 'Validating...' : 'Validate License'}
+              </Button>
+            </form>
+
+            <div className="text-center pt-4 border-t">
+              <p className="text-xs text-gray-500">
+                🔒 Each license key can only be used once to prevent unauthorized shop creation.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (step === 2) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
               <Store className="h-10 w-10 text-white" />
             </div>
