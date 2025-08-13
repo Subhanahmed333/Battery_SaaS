@@ -508,17 +508,13 @@ function App() {
   }, []);
 
   const handleShopSetup = (shopId) => {
-    setSelectedShopId(shopId);
-    setAppState('login');
-  };
-
-  const handleShopSelect = (shopId) => {
-    setSelectedShopId(shopId);
+    // After setup, go directly to login
     setAppState('login');
   };
 
   const handleLogin = (userData) => {
     setUser(userData);
+    setSelectedShopId(userData.shop_id);
     setInventory(OfflineStorage.getInventory(userData.shop_id));
     setSales(OfflineStorage.getSales(userData.shop_id));
     setAppState('main');
@@ -529,7 +525,7 @@ function App() {
     setUser(null);
     setSelectedShopId(null);
     setCurrentView('dashboard');
-    setAppState('shop-select');
+    setAppState('login'); // Go back to secure login
   };
 
   const refreshData = () => {
