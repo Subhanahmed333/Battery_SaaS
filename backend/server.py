@@ -105,12 +105,54 @@ class AuthRequest(BaseModel):
 async def health():
     return {"status": "healthy", "message": "Murick Battery SaaS API is running"}
 
+# License Key Management
+@app.post("/api/validate-license")
+async def validate_license_key(license_data: LicenseValidation):
+    license_key = license_data.license_key
+    
+    if license_key not in license_keys_store:
+        raise HTTPException(status_code=404, detail="Invalid license key")
+    
+    license_info = license_keys_store[license_key]
+    
+    if license_info["used"]:
+        raise HTTPException(status_code=400, detail="License key has already been used")
+    
+    return {
+        "valid": True,
+        "plan": license_info["plan"],
+        "message": "License key is valid and available"
+    }
+
 # Shop Configuration Management
 @app.post("/api/setup-shop")
 async def setup_shop(shop_config: ShopConfig):
+    # Validate license key first
+    license_key = shop_config.license_key
+    
+    if license_key not in license_keys_store:
+        raise HTTPException(status_code=404, detail="Invalid license key")
+    
+    license_info = license_keys_store[license_key]
+    
+    if license_info["used"]:
+        raise HTTPException(status_code=400, detail="License key has already been used")
+    
+    # Mark license key as used
+    license_keys_store[license_key]["used"] = True
+    license_keys_store[license_key]["used_date"] = datetime.now().isoformat()
+    license_keys_store[license_key]["shop_id"] = shop_config.shop_id
+    
+    # Create shop configuration
     shop_config.created_date = datetime.now()
     shop_config_store[shop_config.shop_id] = shop_config.dict()
-    return {"message": "Shop setup completed successfully", "shop_id": shop_config.shop_id}
+    
+    return {
+        "message": "Shop setup completed successfully", 
+        "shop_id": shop_config.shop_id,
+        "plan": license_info["plan"],
+        "license_activated": True
+    }
 
 @app.get("/api/shop-config/{shop_id}")
 async def get_shop_config(shop_id: str):
