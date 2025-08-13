@@ -540,7 +540,8 @@ function App() {
     { id: 'dashboard', label: 'Home', icon: Home },
     { id: 'inventory', label: 'Stock', icon: Package },
     { id: 'sales', label: 'Sales', icon: ShoppingCart },
-    { id: 'analytics', label: 'Reports', icon: BarChart3 }
+    { id: 'analytics', label: 'Reports', icon: BarChart3 },
+    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   if (isLoading) {
