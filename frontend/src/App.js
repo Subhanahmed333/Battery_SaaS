@@ -193,6 +193,53 @@ function ShopSetupScreen({ onSetupComplete }) {
     );
   }
 
+  if (step === 3) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Store className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Shop Setup Complete!
+            </CardTitle>
+            <CardDescription className="text-gray-600">Your shop has been successfully configured</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-800 mb-2">🔑 Important: Save Your Shop ID</h3>
+              <div className="bg-white border-2 border-blue-300 rounded p-3 mb-3">
+                <p className="text-xs text-blue-600 mb-1">Your Shop ID:</p>
+                <p className="text-xl font-mono font-bold text-blue-800 break-all">{shopData.shop_id}</p>
+              </div>
+              <p className="text-sm text-blue-700">
+                ⚠️ <strong>Write this down safely!</strong> You'll need this Shop ID along with your username and password to login.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-800 mb-2">Shop Details:</h4>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><strong>Shop Name:</strong> {shopData.shop_name}</p>
+                <p><strong>Proprietor:</strong> {shopData.proprietor_name}</p>
+                <p><strong>Admin Username:</strong> {adminUser.username}</p>
+              </div>
+            </div>
+
+            <Button 
+              onClick={() => onSetupComplete(shopData.shop_id)}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+            >
+              Continue to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
