@@ -1785,6 +1785,41 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
 function AnalyticsView({ inventory, sales, user }) {
   const [timeFilter, setTimeFilter] = useState('all');
   const [brandFilter, setBrandFilter] = useState('all');
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
+
+  const shopConfig = OfflineStorage.getShopConfig(user.shop_id);
+
+  // Export functions
+  const handleExportInventoryToExcel = () => {
+    exportInventoryToExcel(inventory, shopConfig);
+  };
+
+  const handleExportInventoryToPDF = () => {
+    exportInventoryToPDF(inventory, shopConfig);
+  };
+
+  const handleExportSalesToExcel = () => {
+    const exportDateRange = getDateRangeFromFilter(timeFilter);
+    exportSalesToExcel(sales, inventory, shopConfig, exportDateRange);
+  };
+
+  const handleExportSalesToPDF = () => {
+    const exportDateRange = getDateRangeFromFilter(timeFilter);
+    exportSalesToPDF(sales, inventory, shopConfig, exportDateRange);
+  };
+
+  const getDateRangeFromFilter = (filter) => {
+    if (filter === 'all') return null;
+    
+    const today = new Date();
+    const ranges = {
+      today: { from: new Date(today.toDateString()), to: today },
+      week: { from: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), to: today },
+      month: { from: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), to: today }
+    };
+    
+    return ranges[filter] || null;
+  };
 
   // Filter sales based on time
   const filteredSales = sales.filter(sale => {
@@ -1872,6 +1907,52 @@ function AnalyticsView({ inventory, sales, user }) {
             Business Reports
           </h2>
           <p className="text-gray-600">Analytics and insights</p>
+        </div>
+        
+        {/* Export Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <div className="flex items-center space-x-2">
+            <Label className="text-sm font-medium">Inventory:</Label>
+            <Button 
+              onClick={handleExportInventoryToExcel} 
+              size="sm" 
+              variant="outline" 
+              className="border-green-200 hover:bg-green-50"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Excel
+            </Button>
+            <Button 
+              onClick={handleExportInventoryToPDF} 
+              size="sm" 
+              variant="outline" 
+              className="border-red-200 hover:bg-red-50"
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              PDF
+            </Button>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Label className="text-sm font-medium">Sales:</Label>
+            <Button 
+              onClick={handleExportSalesToExcel} 
+              size="sm" 
+              variant="outline" 
+              className="border-green-200 hover:bg-green-50"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Excel
+            </Button>
+            <Button 
+              onClick={handleExportSalesToPDF} 
+              size="sm" 
+              variant="outline" 
+              className="border-red-200 hover:bg-red-50"
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              PDF
+            </Button>
+          </div>
         </div>
       </div>
 
