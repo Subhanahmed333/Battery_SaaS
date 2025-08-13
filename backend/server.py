@@ -88,7 +88,11 @@ class ShopConfig(BaseModel):
     email: Optional[str] = None
     tax_number: Optional[str] = None
     users: List[dict] = []
+    license_key: str  # Added license key requirement
     created_date: Optional[datetime] = None
+
+class LicenseValidation(BaseModel):
+    license_key: str
 
 class AuthRequest(BaseModel):
     shop_id: str
