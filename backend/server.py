@@ -160,15 +160,47 @@ async def get_shop_config(shop_id: str):
         raise HTTPException(status_code=404, detail="Shop not found")
     return shop_config_store[shop_id]
 
-@app.put("/api/shop-config/{shop_id}")
-async def update_shop_config(shop_id: str, shop_config: ShopConfig):
-    if shop_id not in shop_config_store:
-        raise HTTPException(status_code=404, detail="Shop not found")
+@app.get("/api/license-info/{license_key}")
+async def get_license_info(license_key: str):
+    if license_key not in license_keys_store:
+        raise HTTPException(status_code=404, detail="License key not found")
     
-    shop_config.shop_id = shop_id
-    shop_config.created_date = shop_config_store[shop_id]["created_date"]
-    shop_config_store[shop_id] = shop_config.dict()
-    return {"message": "Shop configuration updated successfully"}
+    license_info = license_keys_store[license_key]
+    return {
+        "license_key": license_key,
+        "plan": license_info["plan"],
+        "used": license_info["used"],
+        "created_date": license_info["created_date"],
+        "used_date": license_info.get("used_date"),
+        "shop_id": license_info.get("shop_id")
+    }
+
+# Admin endpoint to generate new license keys (for business owners)
+@app.post("/api/admin/generate-license")
+async def generate_license_key(admin_data: dict):
+    # In production, add proper admin authentication here
+    admin_key = admin_data.get("admin_key")
+    plan = admin_data.get("plan", "basic")
+    
+    # Simple admin key check (in production, use proper authentication)
+    if admin_key != "MURICK_ADMIN_2024":
+        raise HTTPException(status_code=401, detail="Unauthorized admin access")
+    
+    # Generate unique license key
+    import secrets
+    license_key = f"MBM-{datetime.now().year}-{plan.upper()}-{secrets.token_hex(3).upper()}"
+    
+    license_keys_store[license_key] = {
+        "used": False,
+        "plan": plan,
+        "created_date": datetime.now().isoformat()
+    }
+    
+    return {
+        "license_key": license_key,
+        "plan": plan,
+        "message": "New license key generated successfully"
+    }
 
 @app.post("/api/authenticate")
 async def authenticate_user(auth_request: AuthRequest):
