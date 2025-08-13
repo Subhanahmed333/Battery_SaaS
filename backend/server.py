@@ -73,6 +73,22 @@ class User(BaseModel):
     shop_name: str
     role: str = "owner"  # owner, manager, cashier
 
+class ShopConfig(BaseModel):
+    shop_id: str
+    shop_name: str
+    proprietor_name: str
+    contact_number: str
+    address: str
+    email: Optional[str] = None
+    tax_number: Optional[str] = None
+    users: List[dict] = []
+    created_date: Optional[datetime] = None
+
+class AuthRequest(BaseModel):
+    shop_id: str
+    username: str
+    password: str
+
 # API Endpoints
 
 @app.get("/api/health")
