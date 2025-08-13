@@ -160,6 +160,20 @@ async def get_shop_config(shop_id: str):
         raise HTTPException(status_code=404, detail="Shop not found")
     return shop_config_store[shop_id]
 
+@app.put("/api/shop-config/{shop_id}")
+async def update_shop_config(shop_id: str, shop_config: ShopConfig):
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    # Preserve original license key and creation date
+    original_config = shop_config_store[shop_id]
+    shop_config.shop_id = shop_id
+    shop_config.created_date = original_config["created_date"]
+    shop_config.license_key = original_config["license_key"]  # Preserve original license
+    
+    shop_config_store[shop_id] = shop_config.dict()
+    return {"message": "Shop configuration updated successfully"}
+
 @app.get("/api/license-info/{license_key}")
 async def get_license_info(license_key: str):
     if license_key not in license_keys_store:
