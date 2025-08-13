@@ -369,37 +369,49 @@ const BATTERY_BRANDS = [
 
 const BATTERY_CAPACITIES = ["35Ah", "45Ah", "55Ah", "65Ah", "70Ah", "80Ah", "100Ah", "120Ah", "135Ah", "150Ah", "180Ah", "200Ah"];
 
-// Login Component
-function LoginScreen({ onLogin, shopId }) {
+// Secure Login Component - Requires Shop ID + Username + Password
+function SecureLoginScreen({ onLogin, onSetupNew }) {
+  const [shopId, setShopId] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const shopConfig = OfflineStorage.getShopConfig(shopId);
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     
-    if (!shopConfig) {
-      setError('Shop configuration not found');
-      return;
-    }
+    try {
+      // First check if shop exists locally
+      const shopConfig = OfflineStorage.getShopConfig(shopId);
+      
+      if (!shopConfig) {
+        setError('Shop not found. Please check your Shop ID or contact your administrator.');
+        setLoading(false);
+        return;
+      }
 
-    // Find user in shop's user list
-    const user = shopConfig.users?.find(u => u.username === username && u.password === password);
-    
-    if (user) {
-      const userData = {
-        ...user,
-        shop_id: shopId,
-        shop_name: shopConfig.shop_name
-      };
-      OfflineStorage.saveUser(userData);
-      onLogin(userData);
-    } else {
-      setError('Wrong username or password!');
+      // Find user in shop's user list  
+      const user = shopConfig.users?.find(u => u.username === username && u.password === password);
+      
+      if (user) {
+        const userData = {
+          ...user,
+          shop_id: shopId,
+          shop_name: shopConfig.shop_name
+        };
+        OfflineStorage.saveUser(userData);
+        onLogin(userData);
+      } else {
+        setError('Invalid username or password!');
+      }
+    } catch (err) {
+      setError('Login failed. Please try again.');
     }
+    
+    setLoading(false);
   };
 
   return (
@@ -410,13 +422,26 @@ function LoginScreen({ onLogin, shopId }) {
             <Battery className="h-10 w-10 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            Login to {shopConfig?.shop_name || 'Shop'}
+            Murick Battery System
           </CardTitle>
-          <CardDescription className="text-gray-600">Battery Shop Management System</CardDescription>
+          <CardDescription className="text-gray-600">Secure Shop Access</CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
           <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <Label>Shop ID</Label>
+              <Input
+                type="text"
+                value={shopId}
+                onChange={(e) => setShopId(e.target.value)}
+                placeholder="Enter your Shop ID"
+                className="border-orange-200 focus:border-orange-400"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">Contact your administrator if you don't have your Shop ID</p>
+            </div>
+
             <div>
               <Label>Username</Label>
               <Input
@@ -459,19 +484,26 @@ function LoginScreen({ onLogin, shopId }) {
               </Alert>
             )}
 
-            <Button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700">
-              Login to Shop
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
+              disabled={loading}
+            >
+              {loading ? 'Logging in...' : 'Login to Shop'}
             </Button>
           </form>
 
-          {shopConfig?.users && (
-            <div className="text-xs text-gray-500 space-y-1 pt-4 border-t">
-              <p><strong>Available Users:</strong></p>
-              {shopConfig.users.map((user, index) => (
-                <p key={index}>{user.role}: {user.username}</p>
-              ))}
-            </div>
-          )}
+          <div className="text-center pt-4 border-t">
+            <p className="text-sm text-gray-600 mb-2">Need to setup a new shop?</p>
+            <Button 
+              onClick={onSetupNew}
+              variant="outline"
+              className="w-full border-orange-200 hover:bg-orange-50"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Setup New Shop
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
