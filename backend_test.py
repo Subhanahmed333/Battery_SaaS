@@ -261,62 +261,6 @@ class MurickBatteryAPITester:
         return success, response
 
     # ===== NEW ENHANCED AUTHENTICATION & SHOP CONFIGURATION TESTS =====
-    
-    def test_setup_shop_1(self):
-        """Test setting up first shop"""
-        self.shop_id_1 = f"shop_{uuid.uuid4().hex[:8]}"
-        
-        shop_data = {
-            "shop_id": self.shop_id_1,
-            "shop_name": "Khan Battery Center",
-            "proprietor_name": "Muhammad Khan",
-            "contact_number": "03001234567",
-            "address": "Main Market, Lahore, Punjab",
-            "email": "khan.batteries@gmail.com",
-            "tax_number": "TAX123456789",
-            "users": []
-        }
-        
-        success, response = self.run_test(
-            "Setup Shop 1",
-            "POST",
-            "api/setup-shop",
-            200,
-            data=shop_data
-        )
-        
-        if success:
-            print(f"   Shop ID: {self.shop_id_1}")
-        
-        return success, response
-
-    def test_setup_shop_2(self):
-        """Test setting up second shop for multi-shop testing"""
-        self.shop_id_2 = f"shop_{uuid.uuid4().hex[:8]}"
-        
-        shop_data = {
-            "shop_id": self.shop_id_2,
-            "shop_name": "Ahmed Auto Parts",
-            "proprietor_name": "Ahmed Ali",
-            "contact_number": "03009876543",
-            "address": "GT Road, Karachi, Sindh",
-            "email": "ahmed.autoparts@gmail.com",
-            "tax_number": "TAX987654321",
-            "users": []
-        }
-        
-        success, response = self.run_test(
-            "Setup Shop 2",
-            "POST",
-            "api/setup-shop",
-            200,
-            data=shop_data
-        )
-        
-        if success:
-            print(f"   Shop ID: {self.shop_id_2}")
-        
-        return success, response
 
     def test_get_shop_config(self):
         """Test retrieving shop configuration"""
