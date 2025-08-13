@@ -116,27 +116,51 @@ function ShopSetupScreen({ onSetupComplete }) {
     setLoading(false);
   };
 
-  const handleShopSubmit = (e) => {
+  const handleShopSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     
-    // Generate unique shop ID with better format
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const shopId = `SHOP-${random}-${timestamp.toString().slice(-6)}`;
+    try {
+      // Generate unique shop ID with better format
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const shopId = `SHOP-${random}-${timestamp.toString().slice(-6)}`;
+      
+      const completeShopData = {
+        ...shopData,
+        shop_id: shopId,
+        license_key: licenseKey,
+        users: [adminUser],
+        created_date: new Date().toISOString()
+      };
+
+      // Submit to backend with license key validation
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/setup-shop`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(completeShopData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Save shop configuration locally (no global shop list for security)
+        OfflineStorage.saveShopConfig(shopId, completeShopData);
+
+        // Show the shop ID to user in the next step
+        setStep(4);
+        setShopData({...shopData, shop_id: shopId});
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Failed to setup shop');
+      }
+    } catch (err) {
+      setError('Failed to setup shop. Please check your connection.');
+    }
     
-    const completeShopData = {
-      ...shopData,
-      shop_id: shopId,
-      users: [adminUser],
-      created_date: new Date().toISOString()
-    };
-
-    // Save shop configuration locally (no global shop list for security)
-    OfflineStorage.saveShopConfig(shopId, completeShopData);
-
-    // Show the shop ID to user in the next step
-    setStep(3);
-    setShopData({...shopData, shop_id: shopId});
+    setLoading(false);
   };
 
   if (step === 1) {
