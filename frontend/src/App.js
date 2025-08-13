@@ -1178,7 +1178,7 @@ function QuickSaleForm({ battery, onSuccess, user }) {
 }
 
 // Add/Edit Battery Form Component
-function AddBatteryForm({ onSuccess, editingItem, onCancel }) {
+function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
   const [formData, setFormData] = useState({
     brand: editingItem?.brand || '',
     capacity: editingItem?.capacity || '',
