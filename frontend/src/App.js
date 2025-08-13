@@ -67,12 +67,285 @@ class OfflineStorage {
   }
 }
 
-// Hardcoded users for offline authentication
-const USERS = [
-  { username: 'admin', password: 'admin123', name: 'Shop Owner', role: 'owner', shopName: 'Khan Battery Shop' },
-  { username: 'manager', password: 'manager123', name: 'Shop Manager', role: 'manager', shopName: 'Khan Battery Shop' },
-  { username: 'cashier', password: 'cashier123', name: 'Cashier', role: 'cashier', shopName: 'Khan Battery Shop' }
-];
+// Shop Setup Component
+function ShopSetupScreen({ onSetupComplete }) {
+  const [step, setStep] = useState(1);
+  const [shopData, setShopData] = useState({
+    shop_id: '',
+    shop_name: '',
+    proprietor_name: '',
+    contact_number: '',
+    address: '',
+    email: ''
+  });
+  const [adminUser, setAdminUser] = useState({
+    username: '',
+    password: '',
+    name: '',
+    role: 'owner'
+  });
+  const [error, setError] = useState('');
+
+  const handleShopSubmit = (e) => {
+    e.preventDefault();
+    
+    // Generate unique shop ID
+    const shopId = `shop_${Date.now()}`;
+    const completeShopData = {
+      ...shopData,
+      shop_id: shopId,
+      users: [adminUser],
+      created_date: new Date().toISOString()
+    };
+
+    // Save shop configuration locally
+    OfflineStorage.saveShopConfig(shopId, completeShopData);
+    
+    // Add to shops list
+    const shops = OfflineStorage.getShops();
+    shops.push({
+      shop_id: shopId,
+      shop_name: shopData.shop_name,
+      proprietor_name: shopData.proprietor_name
+    });
+    OfflineStorage.saveShops(shops);
+
+    onSetupComplete(shopId);
+  };
+
+  if (step === 1) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Store className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+              Setup Your Shop
+            </CardTitle>
+            <CardDescription className="text-gray-600">Enter your shop details</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="space-y-4">
+              <div>
+                <Label>Shop Name</Label>
+                <Input
+                  value={shopData.shop_name}
+                  onChange={(e) => setShopData({...shopData, shop_name: e.target.value})}
+                  placeholder="e.g., Khan Battery Shop"
+                  className="border-orange-200 focus:border-orange-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>Proprietor Name</Label>
+                <Input
+                  value={shopData.proprietor_name}
+                  onChange={(e) => setShopData({...shopData, proprietor_name: e.target.value})}
+                  placeholder="Your full name"
+                  className="border-orange-200 focus:border-orange-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>Contact Number</Label>
+                <Input
+                  value={shopData.contact_number}
+                  onChange={(e) => setShopData({...shopData, contact_number: e.target.value})}
+                  placeholder="03XX-XXXXXXX"
+                  className="border-orange-200 focus:border-orange-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>Shop Address</Label>
+                <Input
+                  value={shopData.address}
+                  onChange={(e) => setShopData({...shopData, address: e.target.value})}
+                  placeholder="Complete shop address"
+                  className="border-orange-200 focus:border-orange-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>Email (Optional)</Label>
+                <Input
+                  type="email"
+                  value={shopData.email}
+                  onChange={(e) => setShopData({...shopData, email: e.target.value})}
+                  placeholder="shop@example.com"
+                  className="border-orange-200 focus:border-orange-400"
+                />
+              </div>
+
+              <Button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700">
+                Next: Create Admin User
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <User className="h-10 w-10 text-white" />
+          </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+            Create Admin User
+          </CardTitle>
+          <CardDescription className="text-gray-600">Set up your admin account</CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <form onSubmit={handleShopSubmit} className="space-y-4">
+            <div>
+              <Label>Admin Username</Label>
+              <Input
+                value={adminUser.username}
+                onChange={(e) => setAdminUser({...adminUser, username: e.target.value})}
+                placeholder="admin"
+                className="border-orange-200 focus:border-orange-400"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label>Admin Password</Label>
+              <Input
+                type="password"
+                value={adminUser.password}
+                onChange={(e) => setAdminUser({...adminUser, password: e.target.value})}
+                placeholder="Strong password"
+                className="border-orange-200 focus:border-orange-400"
+                required
+                minLength={6}
+              />
+            </div>
+            
+            <div>
+              <Label>Admin Name</Label>
+              <Input
+                value={adminUser.name}
+                onChange={(e) => setAdminUser({...adminUser, name: e.target.value})}
+                placeholder="Your display name"
+                className="border-orange-200 focus:border-orange-400"
+                required
+              />
+            </div>
+
+            {error && (
+              <Alert className="border-red-200 bg-red-50">
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+                <AlertDescription className="text-red-700">{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex space-x-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setStep(1)}
+                className="flex-1 border-orange-200"
+              >
+                Back
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
+              >
+                Complete Setup
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Shop Selection Component
+function ShopSelectionScreen({ onShopSelect, onSetupNew }) {
+  const shops = OfflineStorage.getShops();
+
+  if (shops.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Store className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+              Welcome to Murick
+            </CardTitle>
+            <CardDescription className="text-gray-600">No shops configured yet</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <Button 
+              onClick={onSetupNew}
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Setup Your First Shop
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Store className="h-10 w-10 text-white" />
+          </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+            Select Your Shop
+          </CardTitle>
+          <CardDescription className="text-gray-600">Choose a shop to access</CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {shops.map((shop) => (
+            <Card 
+              key={shop.shop_id} 
+              className="cursor-pointer hover:shadow-lg transition-all border-orange-200 hover:border-orange-300"
+              onClick={() => onShopSelect(shop.shop_id)}
+            >
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-800">{shop.shop_name}</h3>
+                <p className="text-sm text-gray-600">{shop.proprietor_name}</p>
+              </CardContent>
+            </Card>
+          ))}
+          
+          <Button 
+            onClick={onSetupNew}
+            variant="outline"
+            className="w-full border-orange-200 hover:bg-orange-50"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Shop
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 // Battery data
 const BATTERY_BRANDS = [
