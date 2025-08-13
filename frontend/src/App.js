@@ -301,7 +301,7 @@ function ShopSetupScreen({ onSetupComplete }) {
     );
   }
 
-  if (step === 3) {
+  if (step === 4) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
