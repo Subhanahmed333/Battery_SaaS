@@ -2347,6 +2347,9 @@ function SettingsView({ user, onRefresh }) {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">Settings</h1>
         <div className="flex items-center space-x-2">
+          <Badge variant="outline" className="bg-green-100 text-green-800">
+            ✅ Licensed
+          </Badge>
           <Badge variant="outline" className="bg-blue-100 text-blue-800">
             Shop ID: {user?.shop_id}
           </Badge>
