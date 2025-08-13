@@ -320,78 +320,8 @@ function ShopSetupScreen({ onSetupComplete }) {
   );
 }
 
-// Shop Selection Component
-function ShopSelectionScreen({ onShopSelect, onSetupNew }) {
-  const shops = OfflineStorage.getShops();
-
-  if (shops.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Store className="h-10 w-10 text-white" />
-            </div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-              Welcome to Murick
-            </CardTitle>
-            <CardDescription className="text-gray-600">No shops configured yet</CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            <Button 
-              onClick={onSetupNew}
-              className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Setup Your First Shop
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Store className="h-10 w-10 text-white" />
-          </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            Select Your Shop
-          </CardTitle>
-          <CardDescription className="text-gray-600">Choose a shop to access</CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          {shops.map((shop) => (
-            <Card 
-              key={shop.shop_id} 
-              className="cursor-pointer hover:shadow-lg transition-all border-orange-200 hover:border-orange-300"
-              onClick={() => onShopSelect(shop.shop_id)}
-            >
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-800">{shop.shop_name}</h3>
-                <p className="text-sm text-gray-600">{shop.proprietor_name}</p>
-              </CardContent>
-            </Card>
-          ))}
-          
-          <Button 
-            onClick={onSetupNew}
-            variant="outline"
-            className="w-full border-orange-200 hover:bg-orange-50"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Shop
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+// REMOVED: ShopSelectionScreen component for security reasons
+// This component exposed all shops to unauthorized users
 
 // Battery data
 const BATTERY_BRANDS = [
