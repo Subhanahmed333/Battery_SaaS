@@ -1595,6 +1595,9 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
     customer_name: '',
     customer_phone: ''
   });
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [completedSale, setCompletedSale] = useState(null);
+  const [selectedBatteryData, setSelectedBatteryData] = useState(null);
 
   const availableInventory = inventory.filter(item => item.stock_quantity > 0);
   const selectedBattery = availableInventory.find(item => item.id === formData.battery_id);
@@ -1637,6 +1640,14 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
     const sales = OfflineStorage.getSales(user.shop_id);
     OfflineStorage.saveSales(user.shop_id, [...sales, newSale]);
 
+    // Set up receipt data
+    setCompletedSale(newSale);
+    setSelectedBatteryData(selectedBattery);
+    setShowReceipt(true);
+  };
+
+  const handleReceiptClose = () => {
+    setShowReceipt(false);
     onSuccess();
   };
 
@@ -1646,6 +1657,18 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
   const totalProfit = selectedBattery && formData.unit_price && formData.quantity_sold
     ? (parseFloat(formData.unit_price) - selectedBattery.purchase_price) * parseInt(formData.quantity_sold)
     : 0;
+
+  if (showReceipt && completedSale && selectedBatteryData) {
+    const shopConfig = OfflineStorage.getShopConfig(user.shop_id);
+    return (
+      <Receipt 
+        sale={completedSale}
+        battery={selectedBatteryData}
+        shopConfig={shopConfig}
+        onClose={handleReceiptClose}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -1752,7 +1775,7 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
         disabled={!formData.battery_id || !formData.unit_price}
       >
         <DollarSign className="h-4 w-4 mr-2" />
-        Record Sale
+        Record Sale & Print Receipt
       </Button>
     </form>
   );
