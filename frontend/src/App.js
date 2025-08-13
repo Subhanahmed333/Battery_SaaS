@@ -1099,17 +1099,17 @@ function QuickSaleForm({ battery, onSuccess, user }) {
     };
 
     // Update inventory
-    const inventory = OfflineStorage.getInventory();
+    const inventory = OfflineStorage.getInventory(user.shop_id);
     const updatedInventory = inventory.map(item => 
       item.id === battery.id 
         ? { ...item, stock_quantity: item.stock_quantity - quantity }
         : item
     );
-    OfflineStorage.saveInventory(updatedInventory);
+    OfflineStorage.saveInventory(user.shop_id, updatedInventory);
 
     // Add sale
-    const sales = OfflineStorage.getSales();
-    OfflineStorage.saveSales([...sales, newSale]);
+    const sales = OfflineStorage.getSales(user.shop_id);
+    OfflineStorage.saveSales(user.shop_id, [...sales, newSale]);
 
     onSuccess();
   };
