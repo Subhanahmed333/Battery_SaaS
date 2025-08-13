@@ -607,37 +607,80 @@ class MurickBatteryAPITester:
         )
 
 def main():
-    print("🚀 Starting Murick Battery SaaS API Tests")
-    print("=" * 50)
+    print("🚀 Starting Enhanced Murick Battery SaaS API Tests")
+    print("=" * 60)
     
     tester = MurickBatteryAPITester()
     
     # Run all tests in sequence
     test_results = []
     
+    print("\n📋 PHASE 1: Basic Endpoint Tests")
+    print("-" * 40)
     # Basic endpoint tests
     test_results.append(tester.test_health_check())
     test_results.append(tester.test_battery_brands())
     test_results.append(tester.test_battery_capacities())
     
+    print("\n🏪 PHASE 2: Shop Configuration Tests")
+    print("-" * 40)
+    # Shop setup and configuration tests
+    test_results.append(tester.test_setup_shop_1())
+    test_results.append(tester.test_setup_shop_2())
+    test_results.append(tester.test_get_shop_config())
+    test_results.append(tester.test_update_shop_config())
+    
+    print("\n👥 PHASE 3: User Management Tests")
+    print("-" * 40)
+    # User management tests
+    test_results.append(tester.test_add_users_to_shop_1())
+    test_results.append(tester.test_add_users_to_shop_2())
+    test_results.append(tester.test_duplicate_username_prevention())
+    
+    print("\n🔐 PHASE 4: Authentication Tests")
+    print("-" * 40)
+    # Authentication tests
+    test_results.append(tester.test_authentication_success())
+    test_results.append(tester.test_authentication_invalid_credentials())
+    test_results.append(tester.test_authentication_invalid_shop())
+    test_results.append(tester.test_cross_shop_authentication())
+    
+    print("\n❌ PHASE 5: Error Handling Tests")
+    print("-" * 40)
+    # Error handling tests
+    test_results.append(tester.test_shop_config_not_found())
+    test_results.append(tester.test_update_nonexistent_shop())
+    test_results.append(tester.test_add_user_to_nonexistent_shop())
+    
+    print("\n📦 PHASE 6: Inventory Management Tests")
+    print("-" * 40)
     # Inventory management tests
     test_results.append(tester.test_add_battery_inventory())
     test_results.append(tester.test_get_inventory())
     
+    print("\n💰 PHASE 7: Sales Management Tests")
+    print("-" * 40)
     # Sales management tests
     test_results.append(tester.test_record_sale())
     test_results.append(tester.test_get_sales())
     test_results.append(tester.test_stock_update_after_sale())
     
+    print("\n📊 PHASE 8: Analytics Tests")
+    print("-" * 40)
     # Analytics tests
     test_results.append(tester.test_dashboard_stats())
     
     # Print final results
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 All tests passed! Backend API is working correctly.")
+        print("🎉 All tests passed! Enhanced Backend API is working correctly.")
+        print("✅ Shop Configuration System: Working")
+        print("✅ Enhanced Authentication: Working")
+        print("✅ Multi-Shop Support: Working")
+        print("✅ User Management: Working")
+        print("✅ Existing Functionality: Working")
         return 0
     else:
         failed_tests = tester.tests_run - tester.tests_passed
