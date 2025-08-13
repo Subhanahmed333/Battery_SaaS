@@ -477,32 +477,62 @@ function App() {
   const [sales, setSales] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [appState, setAppState] = useState('loading'); // loading, shop-select, shop-setup, login, main
+  const [selectedShopId, setSelectedShopId] = useState(null);
 
   // Load offline data
   useEffect(() => {
     const savedUser = OfflineStorage.getUser();
-    if (savedUser) {
+    const shops = OfflineStorage.getShops();
+    
+    if (savedUser && savedUser.shop_id) {
+      // User is logged in
       setUser(savedUser);
+      setSelectedShopId(savedUser.shop_id);
+      setInventory(OfflineStorage.getInventory(savedUser.shop_id));
+      setSales(OfflineStorage.getSales(savedUser.shop_id));
+      setAppState('main');
+    } else if (shops.length === 0) {
+      // No shops configured
+      setAppState('shop-setup');
+    } else {
+      // Show shop selection
+      setAppState('shop-select');
     }
     
-    setInventory(OfflineStorage.getInventory());
-    setSales(OfflineStorage.getSales());
     setIsLoading(false);
   }, []);
 
+  const handleShopSetup = (shopId) => {
+    setSelectedShopId(shopId);
+    setAppState('login');
+  };
+
+  const handleShopSelect = (shopId) => {
+    setSelectedShopId(shopId);
+    setAppState('login');
+  };
+
   const handleLogin = (userData) => {
     setUser(userData);
+    setInventory(OfflineStorage.getInventory(userData.shop_id));
+    setSales(OfflineStorage.getSales(userData.shop_id));
+    setAppState('main');
   };
 
   const handleLogout = () => {
     OfflineStorage.clearUser();
     setUser(null);
+    setSelectedShopId(null);
     setCurrentView('dashboard');
+    setAppState('shop-select');
   };
 
   const refreshData = () => {
-    setInventory(OfflineStorage.getInventory());
-    setSales(OfflineStorage.getSales());
+    if (user?.shop_id) {
+      setInventory(OfflineStorage.getInventory(user.shop_id));
+      setSales(OfflineStorage.getSales(user.shop_id));
+    }
   };
 
   // Navigation items
@@ -512,10 +542,6 @@ function App() {
     { id: 'sales', label: 'Sales', icon: ShoppingCart },
     { id: 'analytics', label: 'Reports', icon: BarChart3 }
   ];
-
-  if (!user) {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
 
   if (isLoading) {
     return (
@@ -530,6 +556,23 @@ function App() {
     );
   }
 
+  if (appState === 'shop-setup') {
+    return <ShopSetupScreen onSetupComplete={handleShopSetup} />;
+  }
+
+  if (appState === 'shop-select') {
+    return (
+      <ShopSelectionScreen 
+        onShopSelect={handleShopSelect}
+        onSetupNew={() => setAppState('shop-setup')}
+      />
+    );
+  }
+
+  if (appState === 'login') {
+    return <LoginScreen onLogin={handleLogin} shopId={selectedShopId} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100">
       {/* Header */}
@@ -542,7 +585,7 @@ function App() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Murick</h1>
-                <p className="text-sm text-gray-600">{user.shopName}</p>
+                <p className="text-sm text-gray-600">{user.shop_name}</p>
               </div>
             </div>
             
