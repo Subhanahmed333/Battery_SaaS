@@ -166,6 +166,7 @@ class MurickBatteryAPITester:
             "battery_id": self.battery_id,
             "quantity_sold": 2,
             "unit_price": 10000.0,
+            "total_amount": 20000.0,  # unit_price * quantity_sold
             "customer_name": "Ahmed Khan",
             "customer_phone": "03001234567"
         }
