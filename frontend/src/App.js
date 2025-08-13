@@ -1588,17 +1588,17 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
     };
 
     // Update inventory
-    const currentInventory = OfflineStorage.getInventory();
+    const currentInventory = OfflineStorage.getInventory(user.shop_id);
     const updatedInventory = currentInventory.map(item => 
       item.id === formData.battery_id 
         ? { ...item, stock_quantity: item.stock_quantity - parseInt(formData.quantity_sold) }
         : item
     );
-    OfflineStorage.saveInventory(updatedInventory);
+    OfflineStorage.saveInventory(user.shop_id, updatedInventory);
 
     // Add sale
-    const sales = OfflineStorage.getSales();
-    OfflineStorage.saveSales([...sales, newSale]);
+    const sales = OfflineStorage.getSales(user.shop_id);
+    OfflineStorage.saveSales(user.shop_id, [...sales, newSale]);
 
     onSuccess();
   };
