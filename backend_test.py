@@ -938,8 +938,8 @@ class MurickBatteryAPITester:
         )
 
 def main():
-    print("🚀 Starting Enhanced Murick Battery SaaS API Tests")
-    print("=" * 60)
+    print("🚀 Starting Enhanced Murick Battery SaaS API Tests with LICENSE KEY SYSTEM")
+    print("=" * 80)
     
     tester = MurickBatteryAPITester()
     
@@ -953,22 +953,50 @@ def main():
     test_results.append(tester.test_battery_brands())
     test_results.append(tester.test_battery_capacities())
     
-    print("\n🏪 PHASE 2: Shop Configuration Tests")
-    print("-" * 40)
-    # Shop setup and configuration tests
-    test_results.append(tester.test_setup_shop_1())
-    test_results.append(tester.test_setup_shop_2())
+    print("\n🔑 PHASE 2: LICENSE KEY SYSTEM TESTS (CRITICAL BUSINESS SECURITY)")
+    print("-" * 70)
+    # License key validation tests
+    test_results.append(tester.test_validate_valid_license_key())
+    test_results.append(tester.test_validate_invalid_license_key())
+    
+    # Protected shop setup tests
+    test_results.append(tester.test_setup_shop_with_valid_license())
+    test_results.append(tester.test_setup_shop_with_invalid_license())
+    
+    # Business security tests - license key reuse prevention
+    test_results.append(tester.test_validate_used_license_key())
+    test_results.append(tester.test_setup_shop_with_used_license())
+    
+    # Multiple shop creation with different licenses
+    test_results.append(tester.test_setup_second_shop_with_different_license())
+    
+    # License information retrieval
+    test_results.append(tester.test_get_license_info_valid())
+    test_results.append(tester.test_get_license_info_invalid())
+    
+    # Admin license generation
+    test_results.append(tester.test_admin_generate_license_valid_admin())
+    test_results.append(tester.test_admin_generate_license_invalid_admin())
+    test_results.append(tester.test_validate_generated_license_key())
+    test_results.append(tester.test_setup_shop_with_generated_license())
+    
+    # Business security verification
+    test_results.append(tester.test_business_security_multiple_shops_prevention())
+    
+    print("\n🏪 PHASE 3: Shop Configuration Tests (Updated APIs)")
+    print("-" * 50)
+    # Shop configuration tests (these should still work with license system)
     test_results.append(tester.test_get_shop_config())
     test_results.append(tester.test_update_shop_config())
     
-    print("\n👥 PHASE 3: User Management Tests")
+    print("\n👥 PHASE 4: User Management Tests")
     print("-" * 40)
     # User management tests
     test_results.append(tester.test_add_users_to_shop_1())
     test_results.append(tester.test_add_users_to_shop_2())
     test_results.append(tester.test_duplicate_username_prevention())
     
-    print("\n🔐 PHASE 4: Authentication Tests")
+    print("\n🔐 PHASE 5: Authentication Tests")
     print("-" * 40)
     # Authentication tests
     test_results.append(tester.test_authentication_success())
@@ -976,46 +1004,56 @@ def main():
     test_results.append(tester.test_authentication_invalid_shop())
     test_results.append(tester.test_cross_shop_authentication())
     
-    print("\n❌ PHASE 5: Error Handling Tests")
+    print("\n❌ PHASE 6: Error Handling Tests")
     print("-" * 40)
     # Error handling tests
     test_results.append(tester.test_shop_config_not_found())
     test_results.append(tester.test_update_nonexistent_shop())
     test_results.append(tester.test_add_user_to_nonexistent_shop())
     
-    print("\n📦 PHASE 6: Inventory Management Tests")
-    print("-" * 40)
+    print("\n📦 PHASE 7: Inventory Management Tests (Existing Functionality)")
+    print("-" * 60)
     # Inventory management tests
     test_results.append(tester.test_add_battery_inventory())
     test_results.append(tester.test_get_inventory())
     
-    print("\n💰 PHASE 7: Sales Management Tests")
-    print("-" * 40)
+    print("\n💰 PHASE 8: Sales Management Tests (Existing Functionality)")
+    print("-" * 55)
     # Sales management tests
     test_results.append(tester.test_record_sale())
     test_results.append(tester.test_get_sales())
     test_results.append(tester.test_stock_update_after_sale())
     
-    print("\n📊 PHASE 8: Analytics Tests")
-    print("-" * 40)
+    print("\n📊 PHASE 9: Analytics Tests (Existing Functionality)")
+    print("-" * 50)
     # Analytics tests
     test_results.append(tester.test_dashboard_stats())
     
     # Print final results
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 80)
     print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 All tests passed! Enhanced Backend API is working correctly.")
+        print("🎉 ALL TESTS PASSED! LICENSE KEY SYSTEM & BACKEND API WORKING CORRECTLY!")
+        print("✅ License Key Validation: Working")
+        print("✅ Protected Shop Setup: Working") 
+        print("✅ License Key Reuse Prevention: Working")
+        print("✅ Business Security Controls: Working")
+        print("✅ Admin License Generation: Working")
         print("✅ Shop Configuration System: Working")
         print("✅ Enhanced Authentication: Working")
         print("✅ Multi-Shop Support: Working")
         print("✅ User Management: Working")
         print("✅ Existing Functionality: Working")
+        print("\n🔒 BUSINESS SECURITY VERIFIED:")
+        print("   • Multiple shop creation IMPOSSIBLE without multiple license keys")
+        print("   • License keys can only be used ONCE")
+        print("   • Shop creation properly controlled and secured")
         return 0
     else:
         failed_tests = tester.tests_run - tester.tests_passed
         print(f"❌ {failed_tests} test(s) failed. Please check the issues above.")
+        print("🚨 CRITICAL: License key system may have security vulnerabilities!")
         return 1
 
 if __name__ == "__main__":
