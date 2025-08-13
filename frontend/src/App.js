@@ -1079,6 +1079,9 @@ function InventoryCard({ item, onEdit, onRefresh, user }) {
 function QuickSaleForm({ battery, onSuccess, user }) {
   const [quantity, setQuantity] = useState(1);
   const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [completedSale, setCompletedSale] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -1099,6 +1102,7 @@ function QuickSaleForm({ battery, onSuccess, user }) {
       total_profit: totalProfit,
       profit_per_unit: profitPerUnit,
       customer_name: customerName || 'Walk-in Customer',
+      customer_phone: customerPhone,
       sale_date: saleDate,
       sold_by: user.name
     };
@@ -1116,11 +1120,30 @@ function QuickSaleForm({ battery, onSuccess, user }) {
     const sales = OfflineStorage.getSales(user.shop_id);
     OfflineStorage.saveSales(user.shop_id, [...sales, newSale]);
 
+    // Set up receipt data
+    setCompletedSale(newSale);
+    setShowReceipt(true);
+  };
+
+  const handleReceiptClose = () => {
+    setShowReceipt(false);
     onSuccess();
   };
 
   const totalAmount = battery.selling_price * quantity;
   const totalProfit = (battery.selling_price - battery.purchase_price) * quantity;
+
+  if (showReceipt && completedSale) {
+    const shopConfig = OfflineStorage.getShopConfig(user.shop_id);
+    return (
+      <Receipt 
+        sale={completedSale}
+        battery={battery}
+        shopConfig={shopConfig}
+        onClose={handleReceiptClose}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -1163,6 +1186,16 @@ function QuickSaleForm({ battery, onSuccess, user }) {
         />
       </div>
 
+      <div>
+        <Label>Customer Phone (Optional)</Label>
+        <Input 
+          value={customerPhone}
+          onChange={(e) => setCustomerPhone(e.target.value)}
+          placeholder="Enter phone number"
+          className="border-orange-200"
+        />
+      </div>
+
       <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
         <div className="text-sm space-y-1">
           <p><strong>Total Amount:</strong> ₨ {totalAmount.toLocaleString()}</p>
@@ -1176,7 +1209,7 @@ function QuickSaleForm({ battery, onSuccess, user }) {
         disabled={quantity > battery.stock_quantity || quantity < 1}
       >
         <DollarSign className="h-4 w-4 mr-2" />
-        Complete Sale
+        Complete Sale & Print Receipt
       </Button>
     </form>
   );
