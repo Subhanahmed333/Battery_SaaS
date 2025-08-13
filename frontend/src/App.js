@@ -68,6 +68,8 @@ class OfflineStorage {
 // Shop Setup Component
 function ShopSetupScreen({ onSetupComplete }) {
   const [step, setStep] = useState(1);
+  const [licenseKey, setLicenseKey] = useState('');
+  const [licenseValid, setLicenseValid] = useState(false);
   const [shopData, setShopData] = useState({
     shop_name: '',
     proprietor_name: '',
@@ -82,6 +84,37 @@ function ShopSetupScreen({ onSetupComplete }) {
     role: 'owner'
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLicenseValidation = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/validate-license`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ license_key: licenseKey }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLicenseValid(true);
+        setStep(2);
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Invalid license key');
+      }
+    } catch (err) {
+      setError('Failed to validate license key. Please check your connection.');
+    }
+    
+    setLoading(false);
+  };
 
   const handleShopSubmit = (e) => {
     e.preventDefault();
