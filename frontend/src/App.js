@@ -83,6 +83,7 @@ function ShopSetupScreen({ onSetupComplete }) {
     name: '',
     role: 'owner'
   });
+  const [recoveryCodes, setRecoveryCodes] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
