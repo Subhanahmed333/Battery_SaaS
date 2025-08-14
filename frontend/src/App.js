@@ -1207,6 +1207,7 @@ function RecoveryCodeScreen({ onBack }) {
       </div>
     );
   }
+}
 
 // REMOVED: ShopSelectionScreen component for security reasons
 // This component exposed all shops to unauthorized users
@@ -3374,4 +3375,5 @@ function SettingsView({ user, onRefresh }) {
   );
 }
 
+// eslint-disable-next-line
 export default App;
