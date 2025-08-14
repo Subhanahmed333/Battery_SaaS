@@ -5,7 +5,7 @@ from datetime import datetime
 import uuid
 
 class MurickBatteryAPITester:
-    def __init__(self, base_url="https://retail-dashboard-11.preview.emergentagent.com"):
+    def __init__(self, base_url="https://shopid-recovery.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
