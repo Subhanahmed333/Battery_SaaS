@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: Create totally offline setup application for battery selling shops with receipt printing, Excel/PDF export, scalable authentication, and enhanced offline capabilities
+## user_problem_statement: Create totally offline setup application for battery selling shops with receipt printing, Excel/PDF export, scalable authentication, enhanced offline capabilities, and comprehensive account recovery system for shop owners who forget their credentials
 
 ## backend:
   - task: "Enhanced authentication system with shop configuration"
