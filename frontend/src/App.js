@@ -335,6 +335,27 @@ function ShopSetupScreen({ onSetupComplete }) {
               </p>
             </div>
 
+            {recoveryCodes.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h3 className="font-semibold text-red-800 mb-2">🔐 Recovery Codes - SAVE THESE!</h3>
+                <p className="text-sm text-red-700 mb-3">
+                  These recovery codes can help you regain access if you forget your login details. Each code can only be used once.
+                </p>
+                <div className="bg-white border-2 border-red-300 rounded p-3 mb-3">
+                  <div className="grid grid-cols-1 gap-1">
+                    {recoveryCodes.map((code, index) => (
+                      <div key={index} className="font-mono text-sm text-red-800 p-1 bg-red-100 rounded">
+                        {code}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-red-600">
+                  📝 <strong>Print or write these down and store them safely!</strong> You cannot recover them later.
+                </p>
+              </div>
+            )}
+
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <h4 className="font-semibold text-gray-800 mb-2">Shop Details:</h4>
               <div className="text-sm text-gray-600 space-y-1">
