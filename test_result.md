@@ -269,9 +269,10 @@
 
 ## test_plan:
   current_focus:
-    - "Enhanced authentication with shop setup"
-    - "Receipt printing functionality"
-    - "Excel/PDF export functionality"
+    - "Admin Override System for Account Recovery"
+    - "Recovery Codes System"
+    - "Account Recovery UI System"
+    - "Enhanced shop setup with recovery codes display"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
