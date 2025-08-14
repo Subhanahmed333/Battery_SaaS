@@ -31,6 +31,20 @@ license_keys_store = {
     "MBM-2024-BASIC-001": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
 }
 
+# Admin accounts store for super-admin functionality
+admin_accounts_store = {
+    "MURICK_ADMIN_2024": {
+        "username": "murick_admin", 
+        "password": "MurickAdmin@2024", 
+        "name": "Murick System Administrator",
+        "role": "super_admin",
+        "created_date": "2024-01-01"
+    }
+}
+
+# Recovery codes store - maps recovery codes to shop_ids
+recovery_codes_store = {}
+
 # Pakistani Battery Brands with sample data
 BATTERY_BRANDS = [
     {"id": "ags", "name": "AGS", "popular": True},
