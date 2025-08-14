@@ -6,6 +6,8 @@ import os
 import uuid
 from datetime import datetime
 import json
+from cryptography.fernet import Fernet, InvalidToken
+from passlib.context import CryptContext
 
 # Initialize FastAPI app
 app = FastAPI(title="Murick Battery SaaS API", version="1.0.0")
@@ -19,19 +21,81 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- START: NEW PERSISTENCE LOGIC ---
+
+ENCRYPTION_KEY = b'wA3vA_3fPaughp3p4-b63tXyUkhn0C9Xk2l_pA9z3c0='
+cipher_suite = Fernet(ENCRYPTION_KEY)
+
+DATA_DIR = "data"
+SHOPS_FILE = os.path.join(DATA_DIR, "shops.dat")  # Using .dat extension to hide that it's JSON
+LICENSES_FILE = os.path.join(DATA_DIR, "licenses.dat")
+RECOVERY_CODES_FILE = os.path.join(DATA_DIR, "recovery_codes.dat")
+
+os.makedirs(DATA_DIR, exist_ok=True)
+
+def load_from_encrypted_file(filename: str) -> dict:
+    """Loads and decrypts data from a file, returning empty if it fails."""
+    try:
+        with open(filename, 'rb') as f:
+            encrypted_data = f.read()
+        decrypted_data = cipher_suite.decrypt(encrypted_data)
+        return json.loads(decrypted_data)
+    except (FileNotFoundError, InvalidToken, json.JSONDecodeError):
+        return {}
+
+def save_to_encrypted_file(data: dict, filename: str):
+    """Serializes, encrypts, and saves data to a file."""
+    json_data = json.dumps(data, default=str).encode('utf-8')
+    encrypted_data = cipher_suite.encrypt(json_data)
+    with open(filename, 'wb') as f:
+        f.write(encrypted_data)
+
+# Load persisted data from encrypted files at startup
+shop_config_store = load_from_encrypted_file(SHOPS_FILE)
+license_keys_store = load_from_encrypted_file(LICENSES_FILE)
+recovery_codes_store = load_from_encrypted_file(RECOVERY_CODES_FILE)
+
+# If licenses file is empty, populate with initial keys and save it
+if not license_keys_store:
+    license_keys_store = {
+        "A7X1-ST1-001": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
+        "Q9P2-PR2-001": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
+        "Z4B8-BC3-001": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
+        "M3E5-EN4-001": {"used": False, "plan": "enterprise", "created_date": "2024-01-01"},
+        "T1U6-UL5-001": {"used": False, "plan": "ultimate", "created_date": "2024-01-01"},
+        "V2H9-ST1-002": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
+        "R8F1-PR2-002": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
+        "W5K3-BC3-002": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
+        "N7L4-EN4-002": {"used": False, "plan": "enterprise", "created_date": "2024-01-01"},
+        "X3M2-UL5-002": {"used": False, "plan": "ultimate", "created_date": "2024-01-01"},
+        "Y9A7-ST1-003": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
+        "H4D2-PR2-003": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
+        "J1C9-BC3-003": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
+        "F6Q8-EN4-003": {"used": False, "plan": "enterprise", "created_date": "2024-01-01"},
+        "K2P5-UL5-003": {"used": False, "plan": "ultimate", "created_date": "2024-01-01"},
+        "L8S3-ST1-004": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
+        "P1T6-PR2-004": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
+        "Q3B7-BC3-004": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
+    }
+    save_to_encrypted_file(license_keys_store, LICENSES_FILE)
+
+# --- END: NEW PERSISTENCE LOGIC ---
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
 # In-memory storage for MVP (replace with Firebase/MongoDB later)
 inventory_store = {}
 sales_store = {}
 user_store = {}
-shop_config_store = {}
-license_keys_store = {
-    # Sample license keys - in production, these would be generated and managed
-    "MBM-2024-STARTER-001": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
-    "MBM-2024-PREMIUM-001": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
-    "MBM-2024-BASIC-001": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
-}
 
-# Admin accounts store for super-admin functionality
+# Admin accounts are static and don't need to be saved to a file.
 admin_accounts_store = {
     "MURICK_ADMIN_2024": {
         "username": "murick_admin", 
@@ -42,10 +106,7 @@ admin_accounts_store = {
     }
 }
 
-# Recovery codes store - maps recovery codes to shop_ids
-recovery_codes_store = {}
-
-# Pakistani Battery Brands with sample data
+# Static data (doesn't change)
 BATTERY_BRANDS = [
     {"id": "ags", "name": "AGS", "popular": True},
     {"id": "exide", "name": "Exide", "popular": True},
@@ -55,18 +116,16 @@ BATTERY_BRANDS = [
     {"id": "osaka", "name": "Osaka", "popular": False},
     {"id": "crown", "name": "Crown", "popular": False}
 ]
-
-# Common battery capacities in Pakistan market
 BATTERY_CAPACITIES = ["35Ah", "45Ah", "55Ah", "65Ah", "70Ah", "80Ah", "100Ah", "120Ah", "135Ah", "150Ah", "180Ah", "200Ah"]
 
-# Data Models
+# --- Pydantic Data Models ---
 class BatteryItem(BaseModel):
     id: Optional[str] = None
     brand: str
     capacity: str
     model: str
-    purchase_price: float  # PKR
-    selling_price: float   # PKR
+    purchase_price: float
+    selling_price: float
     stock_quantity: int
     low_stock_alert: int = 5
     warranty_months: int = 12
@@ -77,8 +136,8 @@ class SaleTransaction(BaseModel):
     id: Optional[str] = None
     battery_id: str
     quantity_sold: int
-    unit_price: float  # PKR
-    total_amount: float  # PKR
+    unit_price: float
+    total_amount: float
     customer_name: Optional[str] = None
     customer_phone: Optional[str] = None
     warranty_end_date: Optional[datetime] = None
@@ -91,7 +150,7 @@ class User(BaseModel):
     email: str
     name: str
     shop_name: str
-    role: str = "owner"  # owner, manager, cashier
+    role: str = "owner"
 
 class ShopConfig(BaseModel):
     shop_id: str
@@ -102,7 +161,7 @@ class ShopConfig(BaseModel):
     email: Optional[str] = None
     tax_number: Optional[str] = None
     users: List[dict] = []
-    license_key: str  # Added license key requirement
+    license_key: str
     created_date: Optional[datetime] = None
 
 class LicenseValidation(BaseModel):
@@ -131,7 +190,7 @@ class ShopRecoveryRequest(BaseModel):
     shop_id: str
     new_username: str
     new_password: str
-    target_user: str  # username of user to reset
+    target_user: str
 
 class RecoveryCodeRequest(BaseModel):
     recovery_code: str
@@ -150,66 +209,62 @@ async def health():
 @app.post("/api/validate-license")
 async def validate_license_key(license_data: LicenseValidation):
     license_key = license_data.license_key
-    
     if license_key not in license_keys_store:
         raise HTTPException(status_code=404, detail="Invalid license key")
-    
     license_info = license_keys_store[license_key]
-    
     if license_info["used"]:
         raise HTTPException(status_code=400, detail="License key has already been used")
-    
-    return {
-        "valid": True,
-        "plan": license_info["plan"],
-        "message": "License key is valid and available"
-    }
+    return {"valid": True, "plan": license_info["plan"], "message": "License key is valid and available"}
 
 # Shop Configuration Management
 @app.post("/api/setup-shop")
 async def setup_shop(shop_config: ShopConfig):
-    # Validate license key first
+    # 1. Validate the license key
     license_key = shop_config.license_key
-    
     if license_key not in license_keys_store:
         raise HTTPException(status_code=404, detail="Invalid license key")
-    
     license_info = license_keys_store[license_key]
-    
     if license_info["used"]:
         raise HTTPException(status_code=400, detail="License key has already been used")
     
-    # Mark license key as used
+    # 2. Mark license as used and save the encrypted file
     license_keys_store[license_key]["used"] = True
     license_keys_store[license_key]["used_date"] = datetime.now().isoformat()
     license_keys_store[license_key]["shop_id"] = shop_config.shop_id
+    save_to_encrypted_file(license_keys_store, LICENSES_FILE)
     
-    # Generate recovery codes for the shop
+    # 3. Generate recovery codes and save the encrypted file
     import secrets
     recovery_codes = []
-    for i in range(5):  # Generate 5 recovery codes
+    for i in range(5):
         code = f"REC-{secrets.token_hex(4).upper()}-{secrets.token_hex(4).upper()}"
         recovery_codes.append(code)
-        recovery_codes_store[code] = {
-            "shop_id": shop_config.shop_id,
-            "used": False,
-            "generated_date": datetime.now().isoformat()
-        }
+        recovery_codes_store[code] = {"shop_id": shop_config.shop_id, "used": False, "generated_date": datetime.now().isoformat()}
+    save_to_encrypted_file(recovery_codes_store, RECOVERY_CODES_FILE)
     
-    # Create shop configuration
+    # 4. Prepare the shop data dictionary
     shop_config.created_date = datetime.now()
     shop_config_dict = shop_config.dict()
-    shop_config_dict["recovery_codes"] = recovery_codes  # Store codes with shop
+    shop_config_dict["recovery_codes"] = recovery_codes
+
+    # 5. Hash the user passwords within the dictionary BEFORE saving
+    if "users" in shop_config_dict and shop_config_dict["users"]:
+        for user in shop_config_dict["users"]:
+            if "password" in user and user["password"]: # Check that password is not empty
+                user["password"] = get_password_hash(user["password"])
+    
+    # 6. Save the final, secured shop configuration to the encrypted file
     shop_config_store[shop_config.shop_id] = shop_config_dict
+    save_to_encrypted_file(shop_config_store, SHOPS_FILE)
     
     return {
         "message": "Shop setup completed successfully", 
-        "shop_id": shop_config.shop_id,
-        "plan": license_info["plan"],
-        "license_activated": True,
+        "shop_id": shop_config.shop_id, 
+        "plan": license_info["plan"], 
+        "license_activated": True, 
         "recovery_codes": recovery_codes
     }
-
+    
 @app.get("/api/shop-config/{shop_id}")
 async def get_shop_config(shop_id: str):
     if shop_id not in shop_config_store:
@@ -221,14 +276,42 @@ async def update_shop_config(shop_id: str, shop_config: ShopConfig):
     if shop_id not in shop_config_store:
         raise HTTPException(status_code=404, detail="Shop not found")
     
-    # Preserve original license key and creation date
     original_config = shop_config_store[shop_id]
-    shop_config.shop_id = shop_id
-    shop_config.created_date = original_config["created_date"]
-    shop_config.license_key = original_config["license_key"]  # Preserve original license
+    updated_data = shop_config.dict()
     
-    shop_config_store[shop_id] = shop_config.dict()
+    # Ensure critical data is not overwritten
+    updated_data["shop_id"] = shop_id
+    updated_data["created_date"] = original_config.get("created_date")
+    updated_data["license_key"] = original_config.get("license_key")
+    # IMPORTANT: Also preserve user passwords if they are not being changed
+    updated_data["users"] = original_config.get("users", []) 
+    
+    shop_config_store[shop_id] = updated_data
+    save_to_encrypted_file(shop_config_store, SHOPS_FILE) # <-- CORRECTED
     return {"message": "Shop configuration updated successfully"}
+
+@app.post("/api/authenticate")
+async def authenticate_user(auth_request: AuthRequest):
+    shop_id = auth_request.shop_id
+    username = auth_request.username
+    password = auth_request.password
+    
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    shop_config = shop_config_store[shop_id]
+    
+    for user in shop_config.get("users", []):
+        if user["username"] == username:
+            # IMPORTANT: Use verify_password, not a simple == check
+            if verify_password(password, user["password"]):
+                return { "message": "Authentication successful", "user": {"username": user["username"], "name": user["name"]} }
+            else:
+                # Password was wrong for this user
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # User was not found
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @app.get("/api/license-info/{license_key}")
 async def get_license_info(license_key: str):
@@ -272,32 +355,17 @@ async def generate_license_key(admin_data: dict):
         "message": "New license key generated successfully"
     }
 
-@app.post("/api/authenticate")
-async def authenticate_user(auth_request: AuthRequest):
-    shop_id = auth_request.shop_id
+@app.post("/api/admin/authenticate")
+async def authenticate_admin(auth_request: AdminAuthRequest):
+    admin_key = auth_request.admin_key
     username = auth_request.username
     password = auth_request.password
-    
-    if shop_id not in shop_config_store:
-        raise HTTPException(status_code=404, detail="Shop not found")
-    
-    shop_config = shop_config_store[shop_id]
-    
-    # Check if user exists in shop's user list
-    for user in shop_config.get("users", []):
-        if user["username"] == username and user["password"] == password:
-            return {
-                "message": "Authentication successful",
-                "user": {
-                    "username": user["username"],
-                    "name": user["name"],
-                    "role": user["role"],
-                    "shop_id": shop_id,
-                    "shop_name": shop_config["shop_name"]
-                }
-            }
-    
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    if admin_key not in admin_accounts_store:
+        raise HTTPException(status_code=401, detail="Invalid admin key")
+    admin_account = admin_accounts_store[admin_key]
+    if admin_account["username"] != username or admin_account["password"] != password:
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+    return {"message": "Admin authentication successful", "admin": {"username": admin_account["username"], "name": admin_account["name"], "role": admin_account["role"]}}
 
 @app.post("/api/add-user/{shop_id}")
 async def add_user_to_shop(shop_id: str, user_data: dict):
@@ -318,6 +386,9 @@ async def add_user_to_shop(shop_id: str, user_data: dict):
     shop_config_store[shop_id] = shop_config
     
     return {"message": "User added successfully"}
+
+
+
 
 # ===== ADMIN OVERRIDE SYSTEM FOR ACCOUNT RECOVERY =====
 
@@ -347,14 +418,8 @@ async def authenticate_admin(auth_request: AdminAuthRequest):
 
 @app.post("/api/admin/search-shops")
 async def search_shops_for_recovery(search_request: ShopSearchRequest):
-    """Admin endpoint to search shops for recovery purposes"""
-    # First authenticate admin
     try:
-        await authenticate_admin(AdminAuthRequest(
-            admin_key=search_request.admin_key,
-            username=search_request.username,
-            password=search_request.password
-        ))
+        await authenticate_admin(AdminAuthRequest(admin_key=search_request.admin_key, username=search_request.username, password=search_request.password))
     except HTTPException:
         raise HTTPException(status_code=401, detail="Admin authentication failed")
     
@@ -362,9 +427,7 @@ async def search_shops_for_recovery(search_request: ShopSearchRequest):
     matching_shops = []
     
     for shop_id, shop_config in shop_config_store.items():
-        # Search in shop name, proprietor name, contact number, address
         searchable_text = f"{shop_config.get('shop_name', '')} {shop_config.get('proprietor_name', '')} {shop_config.get('contact_number', '')} {shop_config.get('address', '')}".lower()
-        
         if search_term in searchable_text or search_term in shop_id.lower():
             matching_shops.append({
                 "shop_id": shop_id,
@@ -376,11 +439,8 @@ async def search_shops_for_recovery(search_request: ShopSearchRequest):
                 "users_count": len(shop_config.get("users", [])),
                 "created_date": shop_config.get("created_date")
             })
-    
-    return {
-        "shops": matching_shops,
-        "total_found": len(matching_shops)
-    }
+            
+    return {"shops": matching_shops, "total_found": len(matching_shops)}
 
 @app.get("/api/admin/shop-details/{shop_id}")
 async def get_shop_details_for_recovery(shop_id: str, admin_key: str, username: str, password: str):
@@ -416,47 +476,38 @@ async def get_shop_details_for_recovery(shop_id: str, admin_key: str, username: 
 
 @app.post("/api/admin/reset-shop-credentials")
 async def reset_shop_credentials(recovery_request: ShopRecoveryRequest):
-    """Admin endpoint to reset shop user credentials"""
-    # First authenticate admin
+    # (Admin authentication logic remains the same)
     try:
         await authenticate_admin(AdminAuthRequest(
-            admin_key=recovery_request.admin_key,
-            username=recovery_request.username,
-            password=recovery_request.password
+            admin_key=recovery_request.admin_key, username=recovery_request.username, password=recovery_request.password
         ))
     except HTTPException:
         raise HTTPException(status_code=401, detail="Admin authentication failed")
-    
+
     shop_id = recovery_request.shop_id
-    
     if shop_id not in shop_config_store:
         raise HTTPException(status_code=404, detail="Shop not found")
     
     shop_config = shop_config_store[shop_id]
     users = shop_config.get("users", [])
-    
-    # Find the target user
     user_found = False
+
     for i, user in enumerate(users):
         if user["username"] == recovery_request.target_user:
-            # Reset the user's credentials
             users[i]["username"] = recovery_request.new_username
-            users[i]["password"] = recovery_request.new_password
+            # --- HASH THE NEW PASSWORD ---
+            users[i]["password"] = get_password_hash(recovery_request.new_password) # <-- CORRECTED
             user_found = True
             break
-    
+            
     if not user_found:
         raise HTTPException(status_code=404, detail="User not found in shop")
     
-    # Update shop configuration
     shop_config["users"] = users
     shop_config_store[shop_id] = shop_config
+    save_to_encrypted_file(shop_config_store, SHOPS_FILE) # <-- CORRECTED
     
-    return {
-        "message": f"Credentials reset successfully for user in shop {shop_id}",
-        "new_username": recovery_request.new_username,
-        "shop_name": shop_config.get("shop_name")
-    }
+    return {"message": "Credentials reset successfully", "new_username": recovery_request.new_username}
 
 @app.post("/api/admin/generate-new-license")
 async def generate_new_license_for_shop(admin_data: dict):
@@ -525,36 +576,31 @@ async def use_recovery_code(recovery_request: RecoveryCodeRequest):
     if shop_id not in shop_config_store:
         raise HTTPException(status_code=404, detail="Shop not found")
     
-    shop_config = shop_config_store[shop_id]
+    shop_config = shop_config_store[recovery_request.shop_id]
     users = shop_config.get("users", [])
-    
-    # Find the target user
     user_found = False
+
     for i, user in enumerate(users):
         if user["username"] == recovery_request.target_user:
-            # Reset the user's credentials
             users[i]["username"] = recovery_request.new_username
-            users[i]["password"] = recovery_request.new_password
+            # --- HASH THE NEW PASSWORD ---
+            users[i]["password"] = get_password_hash(recovery_request.new_password) # <-- CORRECTED
             user_found = True
             break
-    
+
     if not user_found:
         raise HTTPException(status_code=404, detail="User not found in shop")
-    
-    # Mark recovery code as used
-    recovery_codes_store[recovery_code]["used"] = True
-    recovery_codes_store[recovery_code]["used_date"] = datetime.now().isoformat()
-    
-    # Update shop configuration
+
+    # Mark code as used and save encrypted
+    recovery_codes_store[recovery_request.recovery_code]["used"] = True
+    save_to_encrypted_file(recovery_codes_store, RECOVERY_CODES_FILE) # <-- CORRECTED
+
+    # Update shop config and save encrypted
     shop_config["users"] = users
-    shop_config_store[shop_id] = shop_config
+    shop_config_store[recovery_request.shop_id] = shop_config
+    save_to_encrypted_file(shop_config_store, SHOPS_FILE) # <-- CORRECTED
     
-    return {
-        "message": f"Credentials reset successfully using recovery code",
-        "new_username": recovery_request.new_username,
-        "shop_name": shop_config.get("shop_name"),
-        "recovery_code_used": recovery_code
-    }
+    return {"message": "Credentials reset successfully", "new_username": recovery_request.new_username}
 
 @app.get("/api/recovery/validate-code/{recovery_code}/{shop_id}")
 async def validate_recovery_code(recovery_code: str, shop_id: str):

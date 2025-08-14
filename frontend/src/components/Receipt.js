@@ -119,7 +119,7 @@ export function Receipt({ sale, battery, shopConfig, onPrint, onClose }) {
             <p>Warranty terms apply as per manufacturer</p>
           </div>
           <div className="font-semibold text-orange-600">
-            Powered by Murick Battery Management System
+            Powered by Murick Technologies
           </div>
         </div>
 
