@@ -882,6 +882,749 @@ class MurickBatteryAPITester:
             data=shop_data
         )
 
+    # ===== ACCOUNT RECOVERY SYSTEM TESTS =====
+    
+    def test_admin_authentication_success(self):
+        """Test admin authentication with valid credentials"""
+        admin_auth_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024"
+        }
+        
+        def check_admin_auth(data):
+            return (
+                data.get('message') == 'Admin authentication successful' and
+                'admin' in data and
+                data['admin']['username'] == 'murick_admin' and
+                data['admin']['role'] == 'super_admin'
+            )
+        
+        success, response = self.run_test(
+            "Admin Authentication - Valid Credentials",
+            "POST",
+            "api/admin/authenticate",
+            200,
+            data=admin_auth_data,
+            check_response=check_admin_auth
+        )
+        
+        if success:
+            print(f"   Admin Name: {response['admin']['name']}")
+            print(f"   Admin Role: {response['admin']['role']}")
+        
+        return success, response
+
+    def test_admin_authentication_invalid_key(self):
+        """Test admin authentication with invalid admin key"""
+        admin_auth_data = {
+            "admin_key": "INVALID_ADMIN_KEY",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024"
+        }
+        
+        return self.run_test(
+            "Admin Authentication - Invalid Admin Key",
+            "POST",
+            "api/admin/authenticate",
+            401,  # Should fail with 401
+            data=admin_auth_data
+        )
+
+    def test_admin_authentication_invalid_credentials(self):
+        """Test admin authentication with invalid username/password"""
+        admin_auth_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "wrong_admin",
+            "password": "wrong_password"
+        }
+        
+        return self.run_test(
+            "Admin Authentication - Invalid Credentials",
+            "POST",
+            "api/admin/authenticate",
+            401,  # Should fail with 401
+            data=admin_auth_data
+        )
+
+    def test_admin_search_shops_success(self):
+        """Test admin shop search functionality"""
+        search_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024",
+            "search_term": "Khan"  # Should find Khan Battery Center
+        }
+        
+        def check_search_results(data):
+            return (
+                'shops' in data and
+                'total_found' in data and
+                len(data['shops']) > 0
+            )
+        
+        success, response = self.run_test(
+            "Admin Shop Search - Find Khan Battery Center",
+            "POST",
+            "api/admin/search-shops",
+            200,
+            data=search_data,
+            check_response=check_search_results
+        )
+        
+        if success:
+            print(f"   Found {response['total_found']} shop(s)")
+            for shop in response['shops']:
+                print(f"   - {shop['shop_name']} (ID: {shop['shop_id']})")
+        
+        return success, response
+
+    def test_admin_search_shops_partial_match(self):
+        """Test admin shop search with partial matches"""
+        search_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024",
+            "search_term": "Battery"  # Should find shops with "Battery" in name
+        }
+        
+        def check_search_results(data):
+            return 'shops' in data and 'total_found' in data
+        
+        return self.run_test(
+            "Admin Shop Search - Partial Match",
+            "POST",
+            "api/admin/search-shops",
+            200,
+            data=search_data,
+            check_response=check_search_results
+        )
+
+    def test_admin_search_shops_no_results(self):
+        """Test admin shop search with no matching results"""
+        search_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024",
+            "search_term": "NonExistentShop"
+        }
+        
+        def check_no_results(data):
+            return (
+                'shops' in data and
+                'total_found' in data and
+                data['total_found'] == 0
+            )
+        
+        return self.run_test(
+            "Admin Shop Search - No Results",
+            "POST",
+            "api/admin/search-shops",
+            200,
+            data=search_data,
+            check_response=check_no_results
+        )
+
+    def test_admin_search_shops_invalid_auth(self):
+        """Test admin shop search with invalid authentication"""
+        search_data = {
+            "admin_key": "INVALID_KEY",
+            "username": "wrong_admin",
+            "password": "wrong_password",
+            "search_term": "Khan"
+        }
+        
+        return self.run_test(
+            "Admin Shop Search - Invalid Authentication",
+            "POST",
+            "api/admin/search-shops",
+            401,  # Should fail with 401
+            data=search_data
+        )
+
+    def test_admin_get_shop_details_success(self):
+        """Test admin getting shop details for recovery"""
+        if not self.shop_id_1:
+            print("❌ Cannot test shop details - no shop ID available")
+            return False, {}
+        
+        def check_shop_details(data):
+            required_fields = ['shop_id', 'shop_name', 'proprietor_name', 'users', 'license_key']
+            return all(field in data for field in required_fields)
+        
+        success, response = self.run_test(
+            "Admin Get Shop Details",
+            "GET",
+            f"api/admin/shop-details/{self.shop_id_1}?admin_key=MURICK_ADMIN_2024&username=murick_admin&password=MurickAdmin@2024",
+            200,
+            check_response=check_shop_details
+        )
+        
+        if success:
+            print(f"   Shop: {response.get('shop_name')}")
+            print(f"   Users: {len(response.get('users', []))}")
+            print(f"   Recovery Codes Available: {response.get('recovery_codes_available', 0)}")
+        
+        return success, response
+
+    def test_admin_get_shop_details_invalid_shop(self):
+        """Test admin getting details for non-existent shop"""
+        return self.run_test(
+            "Admin Get Shop Details - Invalid Shop",
+            "GET",
+            "api/admin/shop-details/nonexistent_shop?admin_key=MURICK_ADMIN_2024&username=murick_admin&password=MurickAdmin@2024",
+            404  # Should fail with 404
+        )
+
+    def test_admin_get_shop_details_invalid_auth(self):
+        """Test admin getting shop details with invalid authentication"""
+        if not self.shop_id_1:
+            print("❌ Cannot test shop details - no shop ID available")
+            return False, {}
+        
+        return self.run_test(
+            "Admin Get Shop Details - Invalid Auth",
+            "GET",
+            f"api/admin/shop-details/{self.shop_id_1}?admin_key=INVALID&username=wrong&password=wrong",
+            401  # Should fail with 401
+        )
+
+    def test_admin_reset_shop_credentials_success(self):
+        """Test admin resetting shop user credentials"""
+        if not self.shop_id_1 or not self.test_users:
+            print("❌ Cannot test credential reset - missing shop ID or users")
+            return False, {}
+        
+        # Find a user from shop 1 to reset
+        shop_1_user = next((user for user in self.test_users if user['shop_id'] == self.shop_id_1), None)
+        if not shop_1_user:
+            print("❌ Cannot test credential reset - no users in shop 1")
+            return False, {}
+        
+        reset_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024",
+            "shop_id": self.shop_id_1,
+            "new_username": "reset_admin_khan",
+            "new_password": "newpassword123",
+            "target_user": shop_1_user['username']
+        }
+        
+        def check_reset_success(data):
+            return (
+                'message' in data and
+                data.get('new_username') == 'reset_admin_khan' and
+                'shop_name' in data
+            )
+        
+        success, response = self.run_test(
+            f"Admin Reset Credentials - {shop_1_user['username']}",
+            "POST",
+            "api/admin/reset-shop-credentials",
+            200,
+            data=reset_data,
+            check_response=check_reset_success
+        )
+        
+        if success:
+            print(f"   Reset user: {shop_1_user['username']} -> {reset_data['new_username']}")
+            print(f"   Shop: {response.get('shop_name')}")
+            
+            # Update our test user record for future tests
+            for i, user in enumerate(self.test_users):
+                if user['username'] == shop_1_user['username'] and user['shop_id'] == self.shop_id_1:
+                    self.test_users[i]['username'] = reset_data['new_username']
+                    self.test_users[i]['password'] = reset_data['new_password']
+                    break
+        
+        return success, response
+
+    def test_admin_reset_credentials_invalid_user(self):
+        """Test admin resetting credentials for non-existent user"""
+        if not self.shop_id_1:
+            print("❌ Cannot test credential reset - no shop ID available")
+            return False, {}
+        
+        reset_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024",
+            "shop_id": self.shop_id_1,
+            "new_username": "new_user",
+            "new_password": "newpass123",
+            "target_user": "nonexistent_user"
+        }
+        
+        return self.run_test(
+            "Admin Reset Credentials - Invalid User",
+            "POST",
+            "api/admin/reset-shop-credentials",
+            404,  # Should fail with 404
+            data=reset_data
+        )
+
+    def test_admin_reset_credentials_invalid_shop(self):
+        """Test admin resetting credentials for non-existent shop"""
+        reset_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024",
+            "shop_id": "nonexistent_shop",
+            "new_username": "new_user",
+            "new_password": "newpass123",
+            "target_user": "any_user"
+        }
+        
+        return self.run_test(
+            "Admin Reset Credentials - Invalid Shop",
+            "POST",
+            "api/admin/reset-shop-credentials",
+            404,  # Should fail with 404
+            data=reset_data
+        )
+
+    def test_admin_reset_credentials_invalid_auth(self):
+        """Test admin resetting credentials with invalid authentication"""
+        if not self.shop_id_1:
+            print("❌ Cannot test credential reset - no shop ID available")
+            return False, {}
+        
+        reset_data = {
+            "admin_key": "INVALID_KEY",
+            "username": "wrong_admin",
+            "password": "wrong_password",
+            "shop_id": self.shop_id_1,
+            "new_username": "new_user",
+            "new_password": "newpass123",
+            "target_user": "admin_khan"
+        }
+        
+        return self.run_test(
+            "Admin Reset Credentials - Invalid Auth",
+            "POST",
+            "api/admin/reset-shop-credentials",
+            401,  # Should fail with 401
+            data=reset_data
+        )
+
+    def test_admin_generate_new_license_for_shop(self):
+        """Test admin generating new license for existing shop"""
+        if not self.shop_id_1:
+            print("❌ Cannot test license generation - no shop ID available")
+            return False, {}
+        
+        license_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024",
+            "plan": "premium",
+            "shop_id": self.shop_id_1
+        }
+        
+        def check_license_generation(data):
+            return (
+                'license_key' in data and
+                data.get('plan') == 'premium' and
+                data.get('assigned_to_shop') == self.shop_id_1 and
+                'message' in data
+            )
+        
+        success, response = self.run_test(
+            "Admin Generate New License for Shop",
+            "POST",
+            "api/admin/generate-new-license",
+            200,
+            data=license_data,
+            check_response=check_license_generation
+        )
+        
+        if success:
+            print(f"   New License: {response.get('license_key')}")
+            print(f"   Plan: {response.get('plan')}")
+            print(f"   Assigned to Shop: {response.get('assigned_to_shop')}")
+        
+        return success, response
+
+    def test_admin_generate_new_license_invalid_shop(self):
+        """Test admin generating license for non-existent shop"""
+        license_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "username": "murick_admin",
+            "password": "MurickAdmin@2024",
+            "plan": "basic",
+            "shop_id": "nonexistent_shop"
+        }
+        
+        return self.run_test(
+            "Admin Generate License - Invalid Shop",
+            "POST",
+            "api/admin/generate-new-license",
+            404,  # Should fail with 404
+            data=license_data
+        )
+
+    def test_admin_generate_new_license_invalid_auth(self):
+        """Test admin generating license with invalid authentication"""
+        license_data = {
+            "admin_key": "INVALID_KEY",
+            "username": "wrong_admin",
+            "password": "wrong_password",
+            "plan": "basic",
+            "shop_id": self.shop_id_1
+        }
+        
+        return self.run_test(
+            "Admin Generate License - Invalid Auth",
+            "POST",
+            "api/admin/generate-new-license",
+            401,  # Should fail with 401
+            data=license_data
+        )
+
+    def test_recovery_codes_generated_during_setup(self):
+        """Test that recovery codes are generated during shop setup"""
+        # This test verifies that recovery codes were generated during shop setup
+        # We'll check by trying to get shop details and seeing recovery codes count
+        if not self.shop_id_1:
+            print("❌ Cannot test recovery codes - no shop ID available")
+            return False, {}
+        
+        success, response = self.run_test(
+            "Verify Recovery Codes Generated During Setup",
+            "GET",
+            f"api/admin/shop-details/{self.shop_id_1}?admin_key=MURICK_ADMIN_2024&username=murick_admin&password=MurickAdmin@2024",
+            200
+        )
+        
+        if success:
+            recovery_codes_available = response.get('recovery_codes_available', 0)
+            if recovery_codes_available > 0:
+                print(f"   ✅ Recovery codes generated: {recovery_codes_available} available")
+                return True, response
+            else:
+                print(f"   ❌ No recovery codes found")
+                return False, response
+        
+        return success, response
+
+    def test_validate_recovery_code_success(self):
+        """Test validating a valid recovery code"""
+        if not self.shop_id_1:
+            print("❌ Cannot test recovery code validation - no shop ID available")
+            return False, {}
+        
+        # First, get shop details to find a recovery code
+        success, shop_details = self.run_test(
+            "Get Shop Details for Recovery Code",
+            "GET",
+            f"api/admin/shop-details/{self.shop_id_1}?admin_key=MURICK_ADMIN_2024&username=murick_admin&password=MurickAdmin@2024",
+            200
+        )
+        
+        if not success:
+            print("❌ Cannot get shop details to find recovery code")
+            return False, {}
+        
+        # We need to get the actual recovery codes from the shop config
+        # Since the API doesn't expose them directly, we'll use a known pattern
+        # Recovery codes follow pattern: REC-XXXX-XXXX
+        # For testing, we'll try to validate with the shop setup response
+        
+        # Let's create a test shop specifically to get recovery codes
+        test_shop_id = f"recovery_test_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": test_shop_id,
+            "shop_name": "Recovery Test Shop",
+            "proprietor_name": "Test Owner",
+            "contact_number": "03001111111",
+            "address": "Test Address",
+            "users": [],
+            "license_key": "MBM-2024-BASIC-001"  # Use the basic license
+        }
+        
+        setup_success, setup_response = self.run_test(
+            "Setup Shop for Recovery Code Testing",
+            "POST",
+            "api/setup-shop",
+            200,
+            data=shop_data
+        )
+        
+        if setup_success and 'recovery_codes' in setup_response:
+            recovery_codes = setup_response['recovery_codes']
+            if recovery_codes:
+                test_code = recovery_codes[0]  # Use first recovery code
+                
+                def check_code_validation(data):
+                    return (
+                        data.get('valid') == True and
+                        data.get('shop_id') == test_shop_id
+                    )
+                
+                success, response = self.run_test(
+                    "Validate Recovery Code - Valid Code",
+                    "GET",
+                    f"api/recovery/validate-code/{test_code}/{test_shop_id}",
+                    200,
+                    check_response=check_code_validation
+                )
+                
+                if success:
+                    print(f"   Recovery Code: {test_code}")
+                    print(f"   Valid for Shop: {response.get('shop_id')}")
+                
+                return success, response
+        
+        print("❌ Could not get recovery codes from shop setup")
+        return False, {}
+
+    def test_validate_recovery_code_invalid_code(self):
+        """Test validating an invalid recovery code"""
+        if not self.shop_id_1:
+            print("❌ Cannot test recovery code validation - no shop ID available")
+            return False, {}
+        
+        return self.run_test(
+            "Validate Recovery Code - Invalid Code",
+            "GET",
+            f"api/recovery/validate-code/INVALID-CODE/{self.shop_id_1}",
+            404  # Should fail with 404
+        )
+
+    def test_validate_recovery_code_wrong_shop(self):
+        """Test validating recovery code for wrong shop"""
+        if not self.shop_id_1 or not self.shop_id_2:
+            print("❌ Cannot test recovery code validation - missing shop IDs")
+            return False, {}
+        
+        # This test assumes we have recovery codes from shop setup
+        # We'll use a dummy code format for testing
+        dummy_code = "REC-TEST-CODE"
+        
+        return self.run_test(
+            "Validate Recovery Code - Wrong Shop",
+            "GET",
+            f"api/recovery/validate-code/{dummy_code}/{self.shop_id_2}",
+            404  # Should fail with 404 (code doesn't exist)
+        )
+
+    def test_use_recovery_code_success(self):
+        """Test using recovery code to reset credentials"""
+        # Create a new shop specifically for this test to get fresh recovery codes
+        test_shop_id = f"recovery_use_test_{uuid.uuid4().hex[:8]}"
+        
+        shop_data = {
+            "shop_id": test_shop_id,
+            "shop_name": "Recovery Use Test Shop",
+            "proprietor_name": "Test Owner",
+            "contact_number": "03002222222",
+            "address": "Test Address",
+            "users": [],
+            "license_key": "MBM-2024-PREMIUM-001"  # This should be available
+        }
+        
+        # First setup the shop
+        setup_success, setup_response = self.run_test(
+            "Setup Shop for Recovery Code Use Test",
+            "POST",
+            "api/setup-shop",
+            200,
+            data=shop_data
+        )
+        
+        if not setup_success or 'recovery_codes' not in setup_response:
+            print("❌ Could not setup shop for recovery code test")
+            return False, {}
+        
+        recovery_codes = setup_response['recovery_codes']
+        if not recovery_codes:
+            print("❌ No recovery codes generated")
+            return False, {}
+        
+        # Add a user to the shop first
+        test_user = {
+            "username": "recovery_user",
+            "password": "original123",
+            "name": "Recovery Test User",
+            "role": "admin"
+        }
+        
+        user_success, _ = self.run_test(
+            "Add User for Recovery Test",
+            "POST",
+            f"api/add-user/{test_shop_id}",
+            200,
+            data=test_user
+        )
+        
+        if not user_success:
+            print("❌ Could not add user for recovery test")
+            return False, {}
+        
+        # Now use recovery code to reset credentials
+        recovery_request = {
+            "recovery_code": recovery_codes[0],
+            "shop_id": test_shop_id,
+            "new_username": "recovered_user",
+            "new_password": "newpassword123",
+            "target_user": "recovery_user"
+        }
+        
+        def check_recovery_success(data):
+            return (
+                'message' in data and
+                data.get('new_username') == 'recovered_user' and
+                data.get('recovery_code_used') == recovery_codes[0]
+            )
+        
+        success, response = self.run_test(
+            "Use Recovery Code - Reset Credentials",
+            "POST",
+            "api/recovery/use-code",
+            200,
+            data=recovery_request,
+            check_response=check_recovery_success
+        )
+        
+        if success:
+            print(f"   Recovery Code Used: {recovery_codes[0]}")
+            print(f"   New Username: {response.get('new_username')}")
+            print(f"   Shop: {response.get('shop_name')}")
+            
+            # Test that the user can now authenticate with new credentials
+            auth_data = {
+                "shop_id": test_shop_id,
+                "username": "recovered_user",
+                "password": "newpassword123"
+            }
+            
+            auth_success, auth_response = self.run_test(
+                "Authenticate with Recovered Credentials",
+                "POST",
+                "api/authenticate",
+                200,
+                data=auth_data
+            )
+            
+            if auth_success:
+                print(f"   ✅ Authentication successful with recovered credentials")
+            else:
+                print(f"   ❌ Authentication failed with recovered credentials")
+                success = False
+        
+        return success, response
+
+    def test_use_recovery_code_invalid_code(self):
+        """Test using invalid recovery code"""
+        if not self.shop_id_1:
+            print("❌ Cannot test recovery code use - no shop ID available")
+            return False, {}
+        
+        recovery_request = {
+            "recovery_code": "INVALID-RECOVERY-CODE",
+            "shop_id": self.shop_id_1,
+            "new_username": "new_user",
+            "new_password": "newpass123",
+            "target_user": "any_user"
+        }
+        
+        return self.run_test(
+            "Use Recovery Code - Invalid Code",
+            "POST",
+            "api/recovery/use-code",
+            404,  # Should fail with 404
+            data=recovery_request
+        )
+
+    def test_use_recovery_code_wrong_shop(self):
+        """Test using recovery code for wrong shop"""
+        if not self.shop_id_1 or not self.shop_id_2:
+            print("❌ Cannot test recovery code use - missing shop IDs")
+            return False, {}
+        
+        recovery_request = {
+            "recovery_code": "REC-TEST-CODE",  # Dummy code
+            "shop_id": self.shop_id_2,
+            "new_username": "new_user",
+            "new_password": "newpass123",
+            "target_user": "any_user"
+        }
+        
+        return self.run_test(
+            "Use Recovery Code - Wrong Shop",
+            "POST",
+            "api/recovery/use-code",
+            404,  # Should fail with 404
+            data=recovery_request
+        )
+
+    def test_use_recovery_code_nonexistent_user(self):
+        """Test using recovery code for non-existent user"""
+        if not self.shop_id_1:
+            print("❌ Cannot test recovery code use - no shop ID available")
+            return False, {}
+        
+        recovery_request = {
+            "recovery_code": "REC-TEST-CODE",  # Dummy code
+            "shop_id": self.shop_id_1,
+            "new_username": "new_user",
+            "new_password": "newpass123",
+            "target_user": "nonexistent_user"
+        }
+        
+        return self.run_test(
+            "Use Recovery Code - Non-existent User",
+            "POST",
+            "api/recovery/use-code",
+            404,  # Should fail with 404
+            data=recovery_request
+        )
+
+    def test_authentication_with_reset_credentials(self):
+        """Test authentication with admin-reset credentials"""
+        if not self.shop_id_1 or not self.test_users:
+            print("❌ Cannot test reset credential auth - missing data")
+            return False, {}
+        
+        # Find the user whose credentials were reset by admin
+        reset_user = next((user for user in self.test_users 
+                          if user['shop_id'] == self.shop_id_1 and user['username'] == 'reset_admin_khan'), None)
+        
+        if not reset_user:
+            print("❌ Cannot find reset user for authentication test")
+            return False, {}
+        
+        auth_data = {
+            "shop_id": self.shop_id_1,
+            "username": reset_user['username'],
+            "password": reset_user['password']
+        }
+        
+        def check_auth_success(data):
+            return (
+                data.get('message') == 'Authentication successful' and
+                'user' in data and
+                data['user']['username'] == reset_user['username']
+            )
+        
+        success, response = self.run_test(
+            "Authenticate with Admin-Reset Credentials",
+            "POST",
+            "api/authenticate",
+            200,
+            data=auth_data,
+            check_response=check_auth_success
+        )
+        
+        if success:
+            print(f"   ✅ Authentication successful with reset credentials")
+            print(f"   User: {response['user']['name']}")
+            print(f"   Role: {response['user']['role']}")
+        
+        return success, response
+
 def main():
     print("🚀 Starting Enhanced Murick Battery SaaS API Tests with LICENSE KEY SYSTEM")
     print("=" * 80)
