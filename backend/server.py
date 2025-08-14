@@ -184,15 +184,30 @@ async def setup_shop(shop_config: ShopConfig):
     license_keys_store[license_key]["used_date"] = datetime.now().isoformat()
     license_keys_store[license_key]["shop_id"] = shop_config.shop_id
     
+    # Generate recovery codes for the shop
+    import secrets
+    recovery_codes = []
+    for i in range(5):  # Generate 5 recovery codes
+        code = f"REC-{secrets.token_hex(4).upper()}-{secrets.token_hex(4).upper()}"
+        recovery_codes.append(code)
+        recovery_codes_store[code] = {
+            "shop_id": shop_config.shop_id,
+            "used": False,
+            "generated_date": datetime.now().isoformat()
+        }
+    
     # Create shop configuration
     shop_config.created_date = datetime.now()
-    shop_config_store[shop_config.shop_id] = shop_config.dict()
+    shop_config_dict = shop_config.dict()
+    shop_config_dict["recovery_codes"] = recovery_codes  # Store codes with shop
+    shop_config_store[shop_config.shop_id] = shop_config_dict
     
     return {
         "message": "Shop setup completed successfully", 
         "shop_id": shop_config.shop_id,
         "plan": license_info["plan"],
-        "license_activated": True
+        "license_activated": True,
+        "recovery_codes": recovery_codes
     }
 
 @app.get("/api/shop-config/{shop_id}")
