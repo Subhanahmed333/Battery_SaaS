@@ -765,8 +765,8 @@ class MurickBatteryAPITester:
             return (
                 'license_key' in data and
                 data.get('plan') == 'basic' and
-                data.get('message') == 'New license key generated successfully' and
-                data['license_key'].startswith('MBM-2024-BASIC-')
+                data.get('message') == 'New license key generated successfully by admin' and
+                data['license_key'].startswith('MBM-2025-BASIC-')
             )
         
         success, response = self.run_test(
