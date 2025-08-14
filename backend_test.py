@@ -1626,8 +1626,8 @@ class MurickBatteryAPITester:
         return success, response
 
 def main():
-    print("🚀 Starting Enhanced Murick Battery SaaS API Tests with LICENSE KEY SYSTEM")
-    print("=" * 80)
+    print("🚀 Starting Comprehensive Murick Battery SaaS API Tests with ACCOUNT RECOVERY SYSTEM")
+    print("=" * 90)
     
     tester = MurickBatteryAPITester()
     
@@ -1692,37 +1692,83 @@ def main():
     test_results.append(tester.test_authentication_invalid_shop())
     test_results.append(tester.test_cross_shop_authentication())
     
-    print("\n❌ PHASE 6: Error Handling Tests")
+    print("\n🔒 PHASE 6: ACCOUNT RECOVERY SYSTEM TESTS (NEW CRITICAL FEATURE)")
+    print("-" * 70)
+    # Admin Override System Tests
+    test_results.append(tester.test_admin_authentication_success())
+    test_results.append(tester.test_admin_authentication_invalid_key())
+    test_results.append(tester.test_admin_authentication_invalid_credentials())
+    
+    # Admin Shop Search Tests
+    test_results.append(tester.test_admin_search_shops_success())
+    test_results.append(tester.test_admin_search_shops_partial_match())
+    test_results.append(tester.test_admin_search_shops_no_results())
+    test_results.append(tester.test_admin_search_shops_invalid_auth())
+    
+    # Admin Shop Details Tests
+    test_results.append(tester.test_admin_get_shop_details_success())
+    test_results.append(tester.test_admin_get_shop_details_invalid_shop())
+    test_results.append(tester.test_admin_get_shop_details_invalid_auth())
+    
+    # Admin Credential Reset Tests
+    test_results.append(tester.test_admin_reset_shop_credentials_success())
+    test_results.append(tester.test_admin_reset_credentials_invalid_user())
+    test_results.append(tester.test_admin_reset_credentials_invalid_shop())
+    test_results.append(tester.test_admin_reset_credentials_invalid_auth())
+    
+    # Admin License Generation for Recovery
+    test_results.append(tester.test_admin_generate_new_license_for_shop())
+    test_results.append(tester.test_admin_generate_new_license_invalid_shop())
+    test_results.append(tester.test_admin_generate_new_license_invalid_auth())
+    
+    print("\n🎫 PHASE 7: RECOVERY CODES SYSTEM TESTS (NEW CRITICAL FEATURE)")
+    print("-" * 65)
+    # Recovery Codes Tests
+    test_results.append(tester.test_recovery_codes_generated_during_setup())
+    test_results.append(tester.test_validate_recovery_code_success())
+    test_results.append(tester.test_validate_recovery_code_invalid_code())
+    test_results.append(tester.test_validate_recovery_code_wrong_shop())
+    
+    # Recovery Code Usage Tests
+    test_results.append(tester.test_use_recovery_code_success())
+    test_results.append(tester.test_use_recovery_code_invalid_code())
+    test_results.append(tester.test_use_recovery_code_wrong_shop())
+    test_results.append(tester.test_use_recovery_code_nonexistent_user())
+    
+    # Verify Reset Credentials Work
+    test_results.append(tester.test_authentication_with_reset_credentials())
+    
+    print("\n❌ PHASE 8: Error Handling Tests")
     print("-" * 40)
     # Error handling tests
     test_results.append(tester.test_shop_config_not_found())
     test_results.append(tester.test_update_nonexistent_shop())
     test_results.append(tester.test_add_user_to_nonexistent_shop())
     
-    print("\n📦 PHASE 7: Inventory Management Tests (Existing Functionality)")
+    print("\n📦 PHASE 9: Inventory Management Tests (Existing Functionality)")
     print("-" * 60)
     # Inventory management tests
     test_results.append(tester.test_add_battery_inventory())
     test_results.append(tester.test_get_inventory())
     
-    print("\n💰 PHASE 8: Sales Management Tests (Existing Functionality)")
+    print("\n💰 PHASE 10: Sales Management Tests (Existing Functionality)")
     print("-" * 55)
     # Sales management tests
     test_results.append(tester.test_record_sale())
     test_results.append(tester.test_get_sales())
     test_results.append(tester.test_stock_update_after_sale())
     
-    print("\n📊 PHASE 9: Analytics Tests (Existing Functionality)")
+    print("\n📊 PHASE 11: Analytics Tests (Existing Functionality)")
     print("-" * 50)
     # Analytics tests
     test_results.append(tester.test_dashboard_stats())
     
     # Print final results
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 90)
     print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
     
     if tester.tests_passed == tester.tests_run:
-        print("🎉 ALL TESTS PASSED! LICENSE KEY SYSTEM & BACKEND API WORKING CORRECTLY!")
+        print("🎉 ALL TESTS PASSED! COMPREHENSIVE ACCOUNT RECOVERY SYSTEM WORKING PERFECTLY!")
         print("✅ License Key Validation: Working")
         print("✅ Protected Shop Setup: Working") 
         print("✅ License Key Reuse Prevention: Working")
@@ -1732,16 +1778,22 @@ def main():
         print("✅ Enhanced Authentication: Working")
         print("✅ Multi-Shop Support: Working")
         print("✅ User Management: Working")
+        print("✅ ADMIN OVERRIDE SYSTEM: Working")
+        print("✅ RECOVERY CODES SYSTEM: Working")
         print("✅ Existing Functionality: Working")
-        print("\n🔒 BUSINESS SECURITY VERIFIED:")
-        print("   • Multiple shop creation IMPOSSIBLE without multiple license keys")
-        print("   • License keys can only be used ONCE")
-        print("   • Shop creation properly controlled and secured")
+        print("\n🔒 ACCOUNT RECOVERY SECURITY VERIFIED:")
+        print("   • Admin authentication with super-admin credentials: SECURE")
+        print("   • Shop search and credential reset by admin: WORKING")
+        print("   • Recovery codes generation during shop setup: WORKING")
+        print("   • Recovery code validation and usage: WORKING")
+        print("   • One-time use recovery codes: SECURE")
+        print("   • Cross-shop recovery prevention: SECURE")
+        print("   • Complete offline account recovery solution: READY")
         return 0
     else:
         failed_tests = tester.tests_run - tester.tests_passed
         print(f"❌ {failed_tests} test(s) failed. Please check the issues above.")
-        print("🚨 CRITICAL: License key system may have security vulnerabilities!")
+        print("🚨 CRITICAL: Account recovery system may have security vulnerabilities!")
         return 1
 
 if __name__ == "__main__":
