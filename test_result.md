@@ -136,6 +136,29 @@
         - comment: "✅ FULLY TESTED: Shop configuration APIs working perfectly. Successfully tested: 1) Shop creation with complete details (name, proprietor, contact, address) 2) Shop config retrieval and updates 3) Multi-shop data isolation 4) User management per shop 5) Duplicate username prevention 6) Proper error handling for non-existent shops. All endpoints returning correct responses with proper validation."
 
 ## frontend:
+  - task: "Account Recovery UI System"
+    implemented: true
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "Implemented complete account recovery UI: 1) Recovery method selection screen 2) Admin recovery interface with shop search and credential reset 3) Recovery code interface for self-service recovery 4) Updated shop setup to display recovery codes 5) Added recovery link to login screen"
+
+  - task: "Enhanced shop setup with recovery codes display"
+    implemented: true
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "Updated shop setup flow to receive and display recovery codes from backend. Added prominent warning to save recovery codes securely during setup completion."
   - task: "Enhanced authentication with shop setup"
     implemented: true
     working: true
