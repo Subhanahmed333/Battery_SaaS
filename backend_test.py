@@ -300,7 +300,8 @@ class MurickBatteryAPITester:
             "address": "New Location, Main Market, Lahore, Punjab",
             "email": "khan.batteries.updated@gmail.com",
             "tax_number": "TAX123456789",
-            "users": []
+            "users": [],
+            "license_key": "MBM-2024-STARTER-001"  # Include license key
         }
         
         return self.run_test(
