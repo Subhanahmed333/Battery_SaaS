@@ -113,6 +113,33 @@ class AuthRequest(BaseModel):
     username: str
     password: str
 
+class AdminAuthRequest(BaseModel):
+    admin_key: str
+    username: str
+    password: str
+
+class ShopSearchRequest(BaseModel):
+    admin_key: str
+    username: str
+    password: str
+    search_term: str
+
+class ShopRecoveryRequest(BaseModel):
+    admin_key: str
+    username: str
+    password: str
+    shop_id: str
+    new_username: str
+    new_password: str
+    target_user: str  # username of user to reset
+
+class RecoveryCodeRequest(BaseModel):
+    recovery_code: str
+    shop_id: str
+    new_username: str
+    new_password: str
+    target_user: str
+
 # API Endpoints
 
 @app.get("/api/health")
