@@ -524,7 +524,8 @@ class MurickBatteryAPITester:
             "shop_name": "Test Shop",
             "proprietor_name": "Test Owner",
             "contact_number": "1234567890",
-            "address": "Test Address"
+            "address": "Test Address",
+            "license_key": "DUMMY-LICENSE"  # Include license key
         }
         
         return self.run_test(
