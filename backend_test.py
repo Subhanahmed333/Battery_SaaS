@@ -1414,6 +1414,26 @@ class MurickBatteryAPITester:
 
     def test_use_recovery_code_success(self):
         """Test using recovery code to reset credentials"""
+        # First, generate a new license key for this test
+        admin_data = {
+            "admin_key": "MURICK_ADMIN_2024",
+            "plan": "basic"
+        }
+        
+        license_success, license_response = self.run_test(
+            "Generate License for Recovery Test",
+            "POST",
+            "api/admin/generate-license",
+            200,
+            data=admin_data
+        )
+        
+        if not license_success or 'license_key' not in license_response:
+            print("❌ Could not generate license for recovery test")
+            return False, {}
+        
+        new_license_key = license_response['license_key']
+        
         # Create a new shop specifically for this test to get fresh recovery codes
         test_shop_id = f"recovery_use_test_{uuid.uuid4().hex[:8]}"
         
@@ -1424,7 +1444,7 @@ class MurickBatteryAPITester:
             "contact_number": "03002222222",
             "address": "Test Address",
             "users": [],
-            "license_key": "MBM-2024-PREMIUM-001"  # This should be available
+            "license_key": new_license_key
         }
         
         # First setup the shop
