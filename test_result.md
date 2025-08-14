@@ -214,6 +214,30 @@
         - agent: "main"
         - comment: "Will implement Service Worker in next phase for enhanced offline caching"
 
+  - task: "Admin Override System for Account Recovery"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "Implemented comprehensive offline admin override system: admin authentication, shop search for recovery, credential reset functionality, new license generation for lost licenses. Includes super-admin accounts store and admin-specific API endpoints."
+
+  - task: "Recovery Codes System"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+        - agent: "main"
+        - comment: "Implemented recovery codes generation during shop setup. 5 unique recovery codes generated per shop, one-time use, allows credential reset. Includes recovery code validation and usage API endpoints."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
