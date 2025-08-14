@@ -610,8 +610,16 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
             </Button>
           </form>
 
-          <div className="text-center pt-4 border-t">
-            <p className="text-sm text-gray-600 mb-2">Need to setup a new shop?</p>
+          <div className="text-center pt-4 border-t space-y-3">
+            <Button 
+              onClick={() => setShowRecovery(true)}
+              variant="ghost"
+              className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              🔐 Forgot Shop ID, Username or Password?
+            </Button>
+            
+            <p className="text-sm text-gray-600">Need to setup a new shop?</p>
             <Button 
               onClick={onSetupNew}
               variant="outline"
