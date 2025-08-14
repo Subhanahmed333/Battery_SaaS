@@ -319,6 +319,263 @@ async def add_user_to_shop(shop_id: str, user_data: dict):
     
     return {"message": "User added successfully"}
 
+# ===== ADMIN OVERRIDE SYSTEM FOR ACCOUNT RECOVERY =====
+
+@app.post("/api/admin/authenticate")
+async def authenticate_admin(auth_request: AdminAuthRequest):
+    """Admin authentication for account recovery operations"""
+    admin_key = auth_request.admin_key
+    username = auth_request.username
+    password = auth_request.password
+    
+    if admin_key not in admin_accounts_store:
+        raise HTTPException(status_code=401, detail="Invalid admin key")
+    
+    admin_account = admin_accounts_store[admin_key]
+    
+    if admin_account["username"] != username or admin_account["password"] != password:
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+    
+    return {
+        "message": "Admin authentication successful",
+        "admin": {
+            "username": admin_account["username"],
+            "name": admin_account["name"],
+            "role": admin_account["role"]
+        }
+    }
+
+@app.post("/api/admin/search-shops")
+async def search_shops_for_recovery(search_request: ShopSearchRequest):
+    """Admin endpoint to search shops for recovery purposes"""
+    # First authenticate admin
+    try:
+        await authenticate_admin(AdminAuthRequest(
+            admin_key=search_request.admin_key,
+            username=search_request.username,
+            password=search_request.password
+        ))
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Admin authentication failed")
+    
+    search_term = search_request.search_term.lower()
+    matching_shops = []
+    
+    for shop_id, shop_config in shop_config_store.items():
+        # Search in shop name, proprietor name, contact number, address
+        searchable_text = f"{shop_config.get('shop_name', '')} {shop_config.get('proprietor_name', '')} {shop_config.get('contact_number', '')} {shop_config.get('address', '')}".lower()
+        
+        if search_term in searchable_text or search_term in shop_id.lower():
+            matching_shops.append({
+                "shop_id": shop_id,
+                "shop_name": shop_config.get("shop_name"),
+                "proprietor_name": shop_config.get("proprietor_name"),
+                "contact_number": shop_config.get("contact_number"),
+                "address": shop_config.get("address"),
+                "email": shop_config.get("email"),
+                "users_count": len(shop_config.get("users", [])),
+                "created_date": shop_config.get("created_date")
+            })
+    
+    return {
+        "shops": matching_shops,
+        "total_found": len(matching_shops)
+    }
+
+@app.get("/api/admin/shop-details/{shop_id}")
+async def get_shop_details_for_recovery(shop_id: str, admin_key: str, username: str, password: str):
+    """Admin endpoint to get complete shop details for recovery"""
+    # First authenticate admin
+    try:
+        await authenticate_admin(AdminAuthRequest(
+            admin_key=admin_key,
+            username=username,
+            password=password
+        ))
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Admin authentication failed")
+    
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    shop_config = shop_config_store[shop_id]
+    
+    # Return complete shop details for admin
+    return {
+        "shop_id": shop_id,
+        "shop_name": shop_config.get("shop_name"),
+        "proprietor_name": shop_config.get("proprietor_name"),
+        "contact_number": shop_config.get("contact_number"),
+        "address": shop_config.get("address"),
+        "email": shop_config.get("email"),
+        "license_key": shop_config.get("license_key"),
+        "users": shop_config.get("users", []),
+        "created_date": shop_config.get("created_date"),
+        "recovery_codes_available": len([code for code in shop_config.get("recovery_codes", []) if not recovery_codes_store.get(code, {}).get("used", True)])
+    }
+
+@app.post("/api/admin/reset-shop-credentials")
+async def reset_shop_credentials(recovery_request: ShopRecoveryRequest):
+    """Admin endpoint to reset shop user credentials"""
+    # First authenticate admin
+    try:
+        await authenticate_admin(AdminAuthRequest(
+            admin_key=recovery_request.admin_key,
+            username=recovery_request.username,
+            password=recovery_request.password
+        ))
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Admin authentication failed")
+    
+    shop_id = recovery_request.shop_id
+    
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    shop_config = shop_config_store[shop_id]
+    users = shop_config.get("users", [])
+    
+    # Find the target user
+    user_found = False
+    for i, user in enumerate(users):
+        if user["username"] == recovery_request.target_user:
+            # Reset the user's credentials
+            users[i]["username"] = recovery_request.new_username
+            users[i]["password"] = recovery_request.new_password
+            user_found = True
+            break
+    
+    if not user_found:
+        raise HTTPException(status_code=404, detail="User not found in shop")
+    
+    # Update shop configuration
+    shop_config["users"] = users
+    shop_config_store[shop_id] = shop_config
+    
+    return {
+        "message": f"Credentials reset successfully for user in shop {shop_id}",
+        "new_username": recovery_request.new_username,
+        "shop_name": shop_config.get("shop_name")
+    }
+
+@app.post("/api/admin/generate-new-license")
+async def generate_new_license_for_shop(admin_data: dict):
+    """Admin endpoint to generate new license for existing shop (in case of lost license)"""
+    admin_key = admin_data.get("admin_key")
+    username = admin_data.get("username")
+    password = admin_data.get("password")
+    plan = admin_data.get("plan", "basic")
+    shop_id = admin_data.get("shop_id")
+    
+    # Authenticate admin
+    try:
+        await authenticate_admin(AdminAuthRequest(
+            admin_key=admin_key,
+            username=username,
+            password=password
+        ))
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Admin authentication failed")
+    
+    if shop_id and shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    # Generate unique license key
+    import secrets
+    license_key = f"MBM-{datetime.now().year}-{plan.upper()}-{secrets.token_hex(3).upper()}"
+    
+    license_keys_store[license_key] = {
+        "used": False,
+        "plan": plan,
+        "created_date": datetime.now().isoformat(),
+        "generated_by_admin": True,
+        "assigned_to_shop": shop_id if shop_id else None
+    }
+    
+    return {
+        "license_key": license_key,
+        "plan": plan,
+        "message": "New license key generated successfully by admin",
+        "assigned_to_shop": shop_id
+    }
+
+# ===== RECOVERY CODES SYSTEM =====
+
+@app.post("/api/recovery/use-code")
+async def use_recovery_code(recovery_request: RecoveryCodeRequest):
+    """Use recovery code to reset shop user credentials"""
+    recovery_code = recovery_request.recovery_code
+    shop_id = recovery_request.shop_id
+    
+    # Check if recovery code exists and is valid
+    if recovery_code not in recovery_codes_store:
+        raise HTTPException(status_code=404, detail="Invalid recovery code")
+    
+    code_info = recovery_codes_store[recovery_code]
+    
+    # Check if code is already used
+    if code_info["used"]:
+        raise HTTPException(status_code=400, detail="Recovery code has already been used")
+    
+    # Check if code belongs to the shop
+    if code_info["shop_id"] != shop_id:
+        raise HTTPException(status_code=400, detail="Recovery code does not belong to this shop")
+    
+    # Check if shop exists
+    if shop_id not in shop_config_store:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    shop_config = shop_config_store[shop_id]
+    users = shop_config.get("users", [])
+    
+    # Find the target user
+    user_found = False
+    for i, user in enumerate(users):
+        if user["username"] == recovery_request.target_user:
+            # Reset the user's credentials
+            users[i]["username"] = recovery_request.new_username
+            users[i]["password"] = recovery_request.new_password
+            user_found = True
+            break
+    
+    if not user_found:
+        raise HTTPException(status_code=404, detail="User not found in shop")
+    
+    # Mark recovery code as used
+    recovery_codes_store[recovery_code]["used"] = True
+    recovery_codes_store[recovery_code]["used_date"] = datetime.now().isoformat()
+    
+    # Update shop configuration
+    shop_config["users"] = users
+    shop_config_store[shop_id] = shop_config
+    
+    return {
+        "message": f"Credentials reset successfully using recovery code",
+        "new_username": recovery_request.new_username,
+        "shop_name": shop_config.get("shop_name"),
+        "recovery_code_used": recovery_code
+    }
+
+@app.get("/api/recovery/validate-code/{recovery_code}/{shop_id}")
+async def validate_recovery_code(recovery_code: str, shop_id: str):
+    """Validate if a recovery code is valid for a shop"""
+    if recovery_code not in recovery_codes_store:
+        raise HTTPException(status_code=404, detail="Invalid recovery code")
+    
+    code_info = recovery_codes_store[recovery_code]
+    
+    if code_info["used"]:
+        raise HTTPException(status_code=400, detail="Recovery code has already been used")
+    
+    if code_info["shop_id"] != shop_id:
+        raise HTTPException(status_code=400, detail="Recovery code does not belong to this shop")
+    
+    return {
+        "valid": True,
+        "shop_id": shop_id,
+        "generated_date": code_info["generated_date"]
+    }
+
 # Battery Brands and Capacities
 @app.get("/api/battery-brands")
 async def get_battery_brands():
