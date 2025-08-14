@@ -275,8 +275,6 @@
 
 ## test_plan:
   current_focus:
-    - "Admin Override System for Account Recovery"
-    - "Recovery Codes System"
     - "Account Recovery UI System"
     - "Enhanced shop setup with recovery codes display"
   stuck_tasks: []
