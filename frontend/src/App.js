@@ -148,9 +148,16 @@ function ShopSetupScreen({ onSetupComplete }) {
       if (response.ok) {
         const data = await response.json();
         // Save shop configuration locally (no global shop list for security)
-        OfflineStorage.saveShopConfig(shopId, completeShopData);
+        const completeShopDataWithCodes = {
+          ...completeShopData,
+          recovery_codes: data.recovery_codes || []
+        };
+        OfflineStorage.saveShopConfig(shopId, completeShopDataWithCodes);
 
-        // Show the shop ID to user in the next step
+        // Store recovery codes to display
+        setRecoveryCodes(data.recovery_codes || []);
+
+        // Show the shop ID and recovery codes to user
         setStep(4);
         setShopData({...shopData, shop_id: shopId});
       } else {
