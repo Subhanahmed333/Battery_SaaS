@@ -113,7 +113,7 @@ function ShopSetupScreen({ onSetupComplete }) {
     } catch (err) {
       setError('Failed to validate license key. Please check your connection.');
     }
-    
+
     setLoading(false);
   };
 
@@ -121,13 +121,13 @@ function ShopSetupScreen({ onSetupComplete }) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
       // Generate unique shop ID with better format
       const timestamp = Date.now();
       const random = Math.random().toString(36).substring(2, 8).toUpperCase();
       const shopId = `SHOP-${random}-${timestamp.toString().slice(-6)}`;
-      
+
       const completeShopData = {
         ...shopData,
         shop_id: shopId,
@@ -159,7 +159,7 @@ function ShopSetupScreen({ onSetupComplete }) {
 
         // Show the shop ID and recovery codes to user
         setStep(4);
-        setShopData({...shopData, shop_id: shopId});
+        setShopData({ ...shopData, shop_id: shopId });
       } else {
         const errorData = await response.json();
         setError(errorData.detail || 'Failed to setup shop');
@@ -167,7 +167,7 @@ function ShopSetupScreen({ onSetupComplete }) {
     } catch (err) {
       setError('Failed to setup shop. Please check your connection.');
     }
-    
+
     setLoading(false);
   };
 
@@ -184,7 +184,7 @@ function ShopSetupScreen({ onSetupComplete }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Enter your license key to setup your shop</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <form onSubmit={handleLicenseValidation} className="space-y-4">
               <div>
@@ -208,8 +208,8 @@ function ShopSetupScreen({ onSetupComplete }) {
                 </Alert>
               )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
                 disabled={loading}
               >
@@ -241,59 +241,59 @@ function ShopSetupScreen({ onSetupComplete }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Enter your shop details</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <form onSubmit={(e) => { e.preventDefault(); setStep(3); }} className="space-y-4">
               <div>
                 <Label>Shop Name</Label>
                 <Input
                   value={shopData.shop_name}
-                  onChange={(e) => setShopData({...shopData, shop_name: e.target.value})}
+                  onChange={(e) => setShopData({ ...shopData, shop_name: e.target.value })}
                   placeholder="e.g., Khan Battery Shop"
                   className="border-orange-200 focus:border-orange-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>Proprietor Name</Label>
                 <Input
                   value={shopData.proprietor_name}
-                  onChange={(e) => setShopData({...shopData, proprietor_name: e.target.value})}
+                  onChange={(e) => setShopData({ ...shopData, proprietor_name: e.target.value })}
                   placeholder="Your full name"
                   className="border-orange-200 focus:border-orange-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>Contact Number</Label>
                 <Input
                   value={shopData.contact_number}
-                  onChange={(e) => setShopData({...shopData, contact_number: e.target.value})}
+                  onChange={(e) => setShopData({ ...shopData, contact_number: e.target.value })}
                   placeholder="03XX-XXXXXXX"
                   className="border-orange-200 focus:border-orange-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>Shop Address</Label>
                 <Input
                   value={shopData.address}
-                  onChange={(e) => setShopData({...shopData, address: e.target.value})}
+                  onChange={(e) => setShopData({ ...shopData, address: e.target.value })}
                   placeholder="Complete shop address"
                   className="border-orange-200 focus:border-orange-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>Email (Optional)</Label>
                 <Input
                   type="email"
                   value={shopData.email}
-                  onChange={(e) => setShopData({...shopData, email: e.target.value})}
+                  onChange={(e) => setShopData({ ...shopData, email: e.target.value })}
                   placeholder="shop@example.com"
                   className="border-orange-200 focus:border-orange-400"
                 />
@@ -322,7 +322,7 @@ function ShopSetupScreen({ onSetupComplete }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Your shop has been successfully configured</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800 mb-2">🔑 Important: Save Your Shop ID</h3>
@@ -365,7 +365,7 @@ function ShopSetupScreen({ onSetupComplete }) {
               </div>
             </div>
 
-            <Button 
+            <Button
               onClick={() => onSetupComplete(shopData.shop_id)}
               className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
             >
@@ -384,91 +384,91 @@ function ShopSetupScreen({ onSetupComplete }) {
           <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
               <User className="h-10 w-10 text-white" />
-          </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            Create Admin Account
-          </CardTitle>
-          <CardDescription className="text-gray-600">Set up your login credentials</CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <form onSubmit={handleShopSubmit} className="space-y-4">
-            <div>
-              <Label>Username</Label>
-              <Input
-                value={adminUser.username}
-                onChange={(e) => setAdminUser({...adminUser, username: e.target.value})}
-                placeholder="Choose a username"
-                className="border-orange-200 focus:border-orange-400"
-                required
-              />
             </div>
-            
-            <div>
-              <Label>Password</Label>
-              <Input
-                type="password"
-                value={adminUser.password}
-                onChange={(e) => setAdminUser({...adminUser, password: e.target.value})}
-                placeholder="Choose a strong password"
-                className="border-orange-200 focus:border-orange-400"
-                required
-                minLength={6}
-              />
-            </div>
-            
-            <div>
-              <Label>Your Name</Label>
-              <Input
-                value={adminUser.name}
-                onChange={(e) => setAdminUser({...adminUser, name: e.target.value})}
-                placeholder="Your display name"
-                className="border-orange-200 focus:border-orange-400"
-                required
-              />
-            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+              Create Admin Account
+            </CardTitle>
+            <CardDescription className="text-gray-600">Set up your login credentials</CardDescription>
+          </CardHeader>
 
-            {error && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-                <AlertDescription className="text-red-700">{error}</AlertDescription>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleShopSubmit} className="space-y-4">
+              <div>
+                <Label>Username</Label>
+                <Input
+                  value={adminUser.username}
+                  onChange={(e) => setAdminUser({ ...adminUser, username: e.target.value })}
+                  placeholder="Choose a username"
+                  className="border-orange-200 focus:border-orange-400"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Password</Label>
+                <Input
+                  type="password"
+                  value={adminUser.password}
+                  onChange={(e) => setAdminUser({ ...adminUser, password: e.target.value })}
+                  placeholder="Choose a strong password"
+                  className="border-orange-200 focus:border-orange-400"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <div>
+                <Label>Your Name</Label>
+                <Input
+                  value={adminUser.name}
+                  onChange={(e) => setAdminUser({ ...adminUser, name: e.target.value })}
+                  placeholder="Your display name"
+                  className="border-orange-200 focus:border-orange-400"
+                  required
+                />
+              </div>
+
+              {error && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertDescription className="text-blue-700">
+                  <strong>Important:</strong> Remember these credentials - you'll use them to login to your shop.
+                </AlertDescription>
               </Alert>
-            )}
 
-            <Alert className="bg-blue-50 border-blue-200">
-              <AlertDescription className="text-blue-700">
-                <strong>Important:</strong> Remember these credentials - you'll use them to login to your shop.
-              </AlertDescription>
-            </Alert>
-
-            <div className="flex space-x-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setStep(1)}
-                className="flex-1 border-orange-200"
-              >
-                Back
-              </Button>
-              <Button 
-                type="submit" 
-                className="flex-1 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
-              >
-                Complete Setup
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+              <div className="flex space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                  className="flex-1 border-orange-200"
+                >
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
+                >
+                  Complete Setup
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 }
 
 // Account Recovery Screen Component
 function AccountRecoveryScreen({ onBack }) {
   const [recoveryMethod, setRecoveryMethod] = useState(''); // 'admin' or 'code'
-  
+
   if (!recoveryMethod) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
@@ -482,10 +482,10 @@ function AccountRecoveryScreen({ onBack }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Choose how you want to recover access</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <Button 
+              <Button
                 onClick={() => setRecoveryMethod('admin')}
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12"
               >
@@ -493,8 +493,8 @@ function AccountRecoveryScreen({ onBack }) {
                 Admin Recovery Service
               </Button>
               <p className="text-xs text-gray-500 px-2">Contact system administrator to reset your credentials</p>
-              
-              <Button 
+
+              <Button
                 onClick={() => setRecoveryMethod('code')}
                 className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white h-12"
               >
@@ -505,7 +505,7 @@ function AccountRecoveryScreen({ onBack }) {
             </div>
 
             <div className="pt-4 border-t">
-              <Button 
+              <Button
                 onClick={onBack}
                 variant="outline"
                 className="w-full border-orange-200 hover:bg-orange-50"
@@ -566,7 +566,7 @@ function AdminRecoveryScreen({ onBack }) {
     } catch (err) {
       setError('Failed to authenticate admin. Please check your connection.');
     }
-    
+
     setLoading(false);
   };
 
@@ -584,8 +584,11 @@ function AdminRecoveryScreen({ onBack }) {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/search-shops`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // AFTER
         body: JSON.stringify({
-          ...adminAuth,
+          admin_key: adminAuth.adminKey,
+          username: adminAuth.username,
+          password: adminAuth.password,
           search_term: searchTerm
         }),
       });
@@ -603,7 +606,7 @@ function AdminRecoveryScreen({ onBack }) {
     } catch (err) {
       setError('Search failed. Please check your connection.');
     }
-    
+
     setLoading(false);
   };
 
@@ -630,11 +633,11 @@ function AdminRecoveryScreen({ onBack }) {
       if (response.ok) {
         const data = await response.json();
         setSuccess(`Credentials successfully reset for shop: ${data.shop_name}`);
-        
+
         // Update local storage if shop exists locally
         const shopConfig = OfflineStorage.getShopConfig(selectedShop.shop_id);
         if (shopConfig) {
-          const updatedUsers = shopConfig.users.map(user => 
+          const updatedUsers = shopConfig.users.map(user =>
             user.username === newCredentials.targetUser
               ? { ...user, username: newCredentials.username, password: newCredentials.password }
               : user
@@ -648,7 +651,7 @@ function AdminRecoveryScreen({ onBack }) {
     } catch (err) {
       setError('Reset failed. Please check your connection.');
     }
-    
+
     setLoading(false);
   };
 
@@ -664,12 +667,12 @@ function AdminRecoveryScreen({ onBack }) {
               Reset Successful!
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="space-y-4 text-center">
             <Alert className="border-green-200 bg-green-50">
               <AlertDescription className="text-green-700">{success}</AlertDescription>
             </Alert>
-            
+
             <div className="bg-blue-50 border border-blue-200 rounded p-4">
               <h4 className="font-semibold text-blue-800 mb-2">New Credentials:</h4>
               <p className="text-sm text-blue-700"><strong>Shop ID:</strong> {selectedShop.shop_id}</p>
@@ -677,7 +680,7 @@ function AdminRecoveryScreen({ onBack }) {
               <p className="text-sm text-blue-700"><strong>Password:</strong> {newCredentials.password}</p>
             </div>
 
-            <Button 
+            <Button
               onClick={onBack}
               className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
             >
@@ -702,37 +705,37 @@ function AdminRecoveryScreen({ onBack }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Enter admin credentials to help recover shop access</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <div>
                 <Label>Admin Key</Label>
                 <Input
                   value={adminAuth.adminKey}
-                  onChange={(e) => setAdminAuth({...adminAuth, adminKey: e.target.value})}
+                  onChange={(e) => setAdminAuth({ ...adminAuth, adminKey: e.target.value })}
                   placeholder="Enter admin key"
                   className="border-blue-200 focus:border-blue-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>Admin Username</Label>
                 <Input
                   value={adminAuth.username}
-                  onChange={(e) => setAdminAuth({...adminAuth, username: e.target.value})}
+                  onChange={(e) => setAdminAuth({ ...adminAuth, username: e.target.value })}
                   placeholder="Enter admin username"
                   className="border-blue-200 focus:border-blue-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>Admin Password</Label>
                 <Input
                   type="password"
                   value={adminAuth.password}
-                  onChange={(e) => setAdminAuth({...adminAuth, password: e.target.value})}
+                  onChange={(e) => setAdminAuth({ ...adminAuth, password: e.target.value })}
                   placeholder="Enter admin password"
                   className="border-blue-200 focus:border-blue-400"
                   required
@@ -746,8 +749,8 @@ function AdminRecoveryScreen({ onBack }) {
                 </Alert>
               )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
                 disabled={loading}
               >
@@ -756,7 +759,7 @@ function AdminRecoveryScreen({ onBack }) {
             </form>
 
             <div className="pt-4 border-t">
-              <Button 
+              <Button
                 onClick={onBack}
                 variant="outline"
                 className="w-full border-orange-200 hover:bg-orange-50"
@@ -780,7 +783,7 @@ function AdminRecoveryScreen({ onBack }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Search by shop name, proprietor, phone, or address</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <form onSubmit={handleShopSearch} className="space-y-4">
               <div className="flex space-x-2">
@@ -790,8 +793,8 @@ function AdminRecoveryScreen({ onBack }) {
                   placeholder="Enter shop name, owner name, phone, or address..."
                   className="border-blue-200 focus:border-blue-400 flex-1"
                 />
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="bg-gradient-to-r from-blue-500 to-indigo-600"
                   disabled={loading}
                 >
@@ -832,7 +835,7 @@ function AdminRecoveryScreen({ onBack }) {
             )}
 
             <div className="pt-4 border-t">
-              <Button 
+              <Button
                 onClick={() => setStep(1)}
                 variant="outline"
                 className="w-full border-orange-200 hover:bg-orange-50"
@@ -856,7 +859,7 @@ function AdminRecoveryScreen({ onBack }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Reset login details for {selectedShop.shop_name}</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded p-3">
               <h4 className="font-semibold text-blue-800 mb-1">Shop Details:</h4>
@@ -870,30 +873,30 @@ function AdminRecoveryScreen({ onBack }) {
                 <Label>Current Username to Reset</Label>
                 <Input
                   value={newCredentials.targetUser}
-                  onChange={(e) => setNewCredentials({...newCredentials, targetUser: e.target.value})}
+                  onChange={(e) => setNewCredentials({ ...newCredentials, targetUser: e.target.value })}
                   placeholder="Enter current username to reset"
                   className="border-green-200 focus:border-green-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>New Username</Label>
                 <Input
                   value={newCredentials.username}
-                  onChange={(e) => setNewCredentials({...newCredentials, username: e.target.value})}
+                  onChange={(e) => setNewCredentials({ ...newCredentials, username: e.target.value })}
                   placeholder="Enter new username"
                   className="border-green-200 focus:border-green-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>New Password</Label>
                 <Input
                   type="password"
                   value={newCredentials.password}
-                  onChange={(e) => setNewCredentials({...newCredentials, password: e.target.value})}
+                  onChange={(e) => setNewCredentials({ ...newCredentials, password: e.target.value })}
                   placeholder="Enter new password"
                   className="border-green-200 focus:border-green-400"
                   required
@@ -908,8 +911,8 @@ function AdminRecoveryScreen({ onBack }) {
                 </Alert>
               )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 disabled={loading}
               >
@@ -918,7 +921,7 @@ function AdminRecoveryScreen({ onBack }) {
             </form>
 
             <div className="pt-4 border-t">
-              <Button 
+              <Button
                 onClick={() => setStep(2)}
                 variant="outline"
                 className="w-full border-orange-200 hover:bg-orange-50"
@@ -961,7 +964,7 @@ function RecoveryCodeScreen({ onBack }) {
     } catch (err) {
       setError('Validation failed. Please check your connection.');
     }
-    
+
     setLoading(false);
   };
 
@@ -986,11 +989,11 @@ function RecoveryCodeScreen({ onBack }) {
       if (response.ok) {
         const data = await response.json();
         setSuccess(`Credentials successfully reset using recovery code!`);
-        
+
         // Update local storage
         const shopConfig = OfflineStorage.getShopConfig(shopId);
         if (shopConfig) {
-          const updatedUsers = shopConfig.users.map(user => 
+          const updatedUsers = shopConfig.users.map(user =>
             user.username === newCredentials.targetUser
               ? { ...user, username: newCredentials.username, password: newCredentials.password }
               : user
@@ -1004,7 +1007,7 @@ function RecoveryCodeScreen({ onBack }) {
     } catch (err) {
       setError('Reset failed. Please check your connection.');
     }
-    
+
     setLoading(false);
   };
 
@@ -1020,12 +1023,12 @@ function RecoveryCodeScreen({ onBack }) {
               Recovery Successful!
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="space-y-4 text-center">
             <Alert className="border-green-200 bg-green-50">
               <AlertDescription className="text-green-700">{success}</AlertDescription>
             </Alert>
-            
+
             <div className="bg-blue-50 border border-blue-200 rounded p-4">
               <h4 className="font-semibold text-blue-800 mb-2">Your New Login Details:</h4>
               <p className="text-sm text-blue-700"><strong>Shop ID:</strong> {shopId}</p>
@@ -1039,7 +1042,7 @@ function RecoveryCodeScreen({ onBack }) {
               </AlertDescription>
             </Alert>
 
-            <Button 
+            <Button
               onClick={onBack}
               className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
             >
@@ -1064,7 +1067,7 @@ function RecoveryCodeScreen({ onBack }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Enter your recovery code and Shop ID to reset credentials</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <form onSubmit={handleValidateCode} className="space-y-4">
               <div>
@@ -1080,7 +1083,7 @@ function RecoveryCodeScreen({ onBack }) {
                   Enter one of the recovery codes you saved during setup
                 </p>
               </div>
-              
+
               <div>
                 <Label>Shop ID</Label>
                 <Input
@@ -1099,8 +1102,8 @@ function RecoveryCodeScreen({ onBack }) {
                 </Alert>
               )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 disabled={loading}
               >
@@ -1109,7 +1112,7 @@ function RecoveryCodeScreen({ onBack }) {
             </form>
 
             <div className="pt-4 border-t">
-              <Button 
+              <Button
                 onClick={onBack}
                 variant="outline"
                 className="w-full border-orange-200 hover:bg-orange-50"
@@ -1133,7 +1136,7 @@ function RecoveryCodeScreen({ onBack }) {
             </CardTitle>
             <CardDescription className="text-gray-600">Enter new login details for your shop</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             <Alert className="border-green-200 bg-green-50">
               <AlertDescription className="text-green-700">
@@ -1146,30 +1149,30 @@ function RecoveryCodeScreen({ onBack }) {
                 <Label>Current Username to Reset</Label>
                 <Input
                   value={newCredentials.targetUser}
-                  onChange={(e) => setNewCredentials({...newCredentials, targetUser: e.target.value})}
+                  onChange={(e) => setNewCredentials({ ...newCredentials, targetUser: e.target.value })}
                   placeholder="Enter current username to reset"
                   className="border-green-200 focus:border-green-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>New Username</Label>
                 <Input
                   value={newCredentials.username}
-                  onChange={(e) => setNewCredentials({...newCredentials, username: e.target.value})}
+                  onChange={(e) => setNewCredentials({ ...newCredentials, username: e.target.value })}
                   placeholder="Enter new username"
                   className="border-green-200 focus:border-green-400"
                   required
                 />
               </div>
-              
+
               <div>
                 <Label>New Password</Label>
                 <Input
                   type="password"
                   value={newCredentials.password}
-                  onChange={(e) => setNewCredentials({...newCredentials, password: e.target.value})}
+                  onChange={(e) => setNewCredentials({ ...newCredentials, password: e.target.value })}
                   placeholder="Enter new password"
                   className="border-green-200 focus:border-green-400"
                   required
@@ -1184,8 +1187,8 @@ function RecoveryCodeScreen({ onBack }) {
                 </Alert>
               )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 disabled={loading}
               >
@@ -1194,7 +1197,7 @@ function RecoveryCodeScreen({ onBack }) {
             </form>
 
             <div className="pt-4 border-t">
-              <Button 
+              <Button
                 onClick={() => setStep(1)}
                 variant="outline"
                 className="w-full border-orange-200 hover:bg-orange-50"
@@ -1239,11 +1242,11 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
       // First check if shop exists locally
       const shopConfig = OfflineStorage.getShopConfig(shopId);
-      
+
       if (!shopConfig) {
         setError('Shop not found. Please check your Shop ID or contact your administrator.');
         setLoading(false);
@@ -1252,7 +1255,7 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
 
       // Find user in shop's user list  
       const user = shopConfig.users?.find(u => u.username === username && u.password === password);
-      
+
       if (user) {
         const userData = {
           ...user,
@@ -1267,7 +1270,7 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
     } catch (err) {
       setError('Login failed. Please try again.');
     }
-    
+
     setLoading(false);
   };
 
@@ -1287,7 +1290,7 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
           </CardTitle>
           <CardDescription className="text-gray-600">Secure Shop Access</CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -1314,7 +1317,7 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
                 required
               />
             </div>
-            
+
             <div>
               <Label>Password</Label>
               <div className="relative">
@@ -1345,8 +1348,8 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
               </Alert>
             )}
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
               disabled={loading}
             >
@@ -1355,16 +1358,16 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
           </form>
 
           <div className="text-center pt-4 border-t space-y-3">
-            <Button 
+            <Button
               onClick={() => setShowRecovery(true)}
               variant="ghost"
               className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               🔐 Forgot Shop ID, Username or Password?
             </Button>
-            
+
             <p className="text-sm text-gray-600">Need to setup a new shop?</p>
-            <Button 
+            <Button
               onClick={onSetupNew}
               variant="outline"
               className="w-full border-orange-200 hover:bg-orange-50"
@@ -1393,7 +1396,7 @@ function App() {
   // Load offline data
   useEffect(() => {
     const savedUser = OfflineStorage.getUser();
-    
+
     if (savedUser && savedUser.shop_id) {
       // User is logged in
       setUser(savedUser);
@@ -1405,7 +1408,7 @@ function App() {
       // Show secure login screen (no shop selection for security)
       setAppState('login');
     }
-    
+
     setIsLoading(false);
   }, []);
 
@@ -1482,7 +1485,7 @@ function App() {
                 <p className="text-sm text-gray-600">{user.shop_name}</p>
               </div>
             </div>
-            
+
             {/* User info and logout */}
             <div className="hidden md:flex items-center space-x-4">
               <div className="text-right">
@@ -1515,11 +1518,10 @@ function App() {
                   key={item.id}
                   variant={currentView === item.id ? "default" : "ghost"}
                   onClick={() => setCurrentView(item.id)}
-                  className={`flex items-center space-x-2 ${
-                    currentView === item.id 
-                      ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white" 
+                  className={`flex items-center space-x-2 ${currentView === item.id
+                      ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white"
                       : "hover:bg-orange-100"
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
@@ -1542,11 +1544,10 @@ function App() {
                         setCurrentView(item.id);
                         setIsMobileMenuOpen(false);
                       }}
-                      className={`flex items-center justify-start space-x-2 w-full ${
-                        currentView === item.id 
-                          ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white" 
+                      className={`flex items-center justify-start space-x-2 w-full ${currentView === item.id
+                          ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white"
                           : "hover:bg-orange-100"
-                      }`}
+                        }`}
                     >
                       <Icon className="h-4 w-4" />
                       <span>{item.label}</span>
@@ -1566,7 +1567,7 @@ function App() {
       {/* Main Content */}
       <main className="p-6">
         {currentView === 'dashboard' && (
-          <DashboardView 
+          <DashboardView
             inventory={inventory}
             sales={sales}
             user={user}
@@ -1575,14 +1576,14 @@ function App() {
           />
         )}
         {currentView === 'inventory' && (
-          <InventoryView 
+          <InventoryView
             inventory={inventory}
             onRefresh={refreshData}
             user={user}
           />
         )}
         {currentView === 'sales' && (
-          <SalesView 
+          <SalesView
             sales={sales}
             inventory={inventory}
             onRefresh={refreshData}
@@ -1590,14 +1591,14 @@ function App() {
           />
         )}
         {currentView === 'analytics' && (
-          <AnalyticsView 
+          <AnalyticsView
             inventory={inventory}
             sales={sales}
             user={user}
           />
         )}
         {currentView === 'settings' && (
-          <SettingsView 
+          <SettingsView
             user={user}
             onRefresh={refreshData}
           />
@@ -1614,7 +1615,7 @@ function DashboardView({ inventory, sales, user, onNavigate, onRefresh }) {
   const totalSalesAmount = sales.reduce((sum, sale) => sum + sale.total_amount, 0);
   const totalProfit = sales.reduce((sum, sale) => sum + sale.total_profit, 0);
   const lowStockItems = inventory.filter(item => item.stock_quantity <= item.low_stock_alert);
-  
+
   // Top selling batteries
   const batteryStats = {};
   sales.forEach(sale => {
@@ -1626,7 +1627,7 @@ function DashboardView({ inventory, sales, user, onNavigate, onRefresh }) {
   });
 
   const topSelling = Object.entries(batteryStats)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
     .map(([batteryId, quantity]) => {
       const battery = inventory.find(item => item.id === batteryId);
@@ -1705,16 +1706,16 @@ function DashboardView({ inventory, sales, user, onNavigate, onRefresh }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button 
-              onClick={() => onNavigate('inventory')} 
+            <Button
+              onClick={() => onNavigate('inventory')}
               className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
             >
               <Package className="h-4 w-4 mr-2" />
               Add New Battery
             </Button>
-            <Button 
-              onClick={() => onNavigate('sales')} 
-              variant="outline" 
+            <Button
+              onClick={() => onNavigate('sales')}
+              variant="outline"
               className="w-full border-orange-200 hover:bg-orange-50"
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
@@ -1741,9 +1742,9 @@ function DashboardView({ inventory, sales, user, onNavigate, onRefresh }) {
                   </Alert>
                 ))}
                 {lowStockItems.length > 3 && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => onNavigate('inventory')}
                     className="w-full mt-2 border-orange-200"
                   >
@@ -1799,8 +1800,8 @@ function InventoryView({ inventory, onRefresh, user }) {
 
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.capacity.toLowerCase().includes(searchTerm.toLowerCase());
+      item.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.capacity.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesBrand = filterBrand === 'all' || item.brand === filterBrand;
     return matchesSearch && matchesBrand;
   });
@@ -1814,7 +1815,7 @@ function InventoryView({ inventory, onRefresh, user }) {
           </h2>
           <p className="text-gray-600">Manage your battery inventory</p>
         </div>
-        
+
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700">
@@ -1823,7 +1824,7 @@ function InventoryView({ inventory, onRefresh, user }) {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
-            <AddBatteryForm 
+            <AddBatteryForm
               onSuccess={() => {
                 setIsAddDialogOpen(false);
                 onRefresh();
@@ -1863,8 +1864,8 @@ function InventoryView({ inventory, onRefresh, user }) {
       {/* Inventory Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredInventory.map((item) => (
-          <InventoryCard 
-            key={item.id} 
+          <InventoryCard
+            key={item.id}
             item={item}
             onEdit={(item) => {
               setEditingItem(item);
@@ -1887,7 +1888,7 @@ function InventoryView({ inventory, onRefresh, user }) {
               {inventory.length === 0 ? 'Start by adding your first battery' : 'Try changing your search or filter'}
             </p>
             {inventory.length === 0 && (
-              <Button 
+              <Button
                 onClick={() => setIsAddDialogOpen(true)}
                 className="bg-gradient-to-r from-orange-500 to-amber-600"
               >
@@ -1938,15 +1939,15 @@ function InventoryCard({ item, onEdit, onRefresh, user }) {
             <p className="font-semibold text-emerald-600">{profitMargin}%</p>
           </div>
         </div>
-        
+
         <div className="flex space-x-2">
           <Button variant="outline" size="sm" onClick={() => onEdit(item)} className="flex-1 border-orange-200">
             Edit
           </Button>
           <Dialog open={isQuickSaleOpen} onOpenChange={setIsQuickSaleOpen}>
             <DialogTrigger asChild>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="flex-1 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
                 disabled={item.stock_quantity === 0}
               >
@@ -1955,7 +1956,7 @@ function InventoryCard({ item, onEdit, onRefresh, user }) {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
-              <QuickSaleForm 
+              <QuickSaleForm
                 battery={item}
                 onSuccess={() => {
                   setIsQuickSaleOpen(false);
@@ -1981,7 +1982,7 @@ function QuickSaleForm({ battery, onSuccess, user }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Create sale record
     const saleId = Date.now().toString();
     const saleDate = new Date().toISOString();
@@ -2005,8 +2006,8 @@ function QuickSaleForm({ battery, onSuccess, user }) {
 
     // Update inventory
     const inventory = OfflineStorage.getInventory(user.shop_id);
-    const updatedInventory = inventory.map(item => 
-      item.id === battery.id 
+    const updatedInventory = inventory.map(item =>
+      item.id === battery.id
         ? { ...item, stock_quantity: item.stock_quantity - quantity }
         : item
     );
@@ -2032,7 +2033,7 @@ function QuickSaleForm({ battery, onSuccess, user }) {
   if (showReceipt && completedSale) {
     const shopConfig = OfflineStorage.getShopConfig(user.shop_id);
     return (
-      <Receipt 
+      <Receipt
         sale={completedSale}
         battery={battery}
         shopConfig={shopConfig}
@@ -2061,7 +2062,7 @@ function QuickSaleForm({ battery, onSuccess, user }) {
 
       <div>
         <Label>How many to sell?</Label>
-        <Input 
+        <Input
           type="number"
           value={quantity}
           onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
@@ -2074,7 +2075,7 @@ function QuickSaleForm({ battery, onSuccess, user }) {
 
       <div>
         <Label>Customer Name (Optional)</Label>
-        <Input 
+        <Input
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
           placeholder="Enter customer name"
@@ -2084,7 +2085,7 @@ function QuickSaleForm({ battery, onSuccess, user }) {
 
       <div>
         <Label>Customer Phone (Optional)</Label>
-        <Input 
+        <Input
           value={customerPhone}
           onChange={(e) => setCustomerPhone(e.target.value)}
           placeholder="Enter phone number"
@@ -2099,8 +2100,8 @@ function QuickSaleForm({ battery, onSuccess, user }) {
         </div>
       </div>
 
-      <Button 
-        type="submit" 
+      <Button
+        type="submit"
         className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
         disabled={quantity > battery.stock_quantity || quantity < 1}
       >
@@ -2127,7 +2128,7 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const batteryData = {
       ...formData,
       id: editingItem?.id || Date.now().toString(),
@@ -2140,10 +2141,10 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
     };
 
     const inventory = OfflineStorage.getInventory(user.shop_id);
-    
+
     if (editingItem) {
       // Update existing
-      const updatedInventory = inventory.map(item => 
+      const updatedInventory = inventory.map(item =>
         item.id === editingItem.id ? batteryData : item
       );
       OfflineStorage.saveInventory(user.shop_id, updatedInventory);
@@ -2170,7 +2171,7 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>Brand</Label>
-          <Select value={formData.brand} onValueChange={(value) => setFormData({...formData, brand: value})}>
+          <Select value={formData.brand} onValueChange={(value) => setFormData({ ...formData, brand: value })}>
             <SelectTrigger className="border-orange-200">
               <SelectValue placeholder="Select brand" />
             </SelectTrigger>
@@ -2184,7 +2185,7 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
 
         <div>
           <Label>Capacity</Label>
-          <Select value={formData.capacity} onValueChange={(value) => setFormData({...formData, capacity: value})}>
+          <Select value={formData.capacity} onValueChange={(value) => setFormData({ ...formData, capacity: value })}>
             <SelectTrigger className="border-orange-200">
               <SelectValue placeholder="Select capacity" />
             </SelectTrigger>
@@ -2199,9 +2200,9 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
 
       <div>
         <Label>Model</Label>
-        <Input 
+        <Input
           value={formData.model}
-          onChange={(e) => setFormData({...formData, model: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, model: e.target.value })}
           placeholder="e.g., DIN-55"
           className="border-orange-200"
           required
@@ -2211,10 +2212,10 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>Buy Price (₨)</Label>
-          <Input 
+          <Input
             type="number"
             value={formData.purchase_price}
-            onChange={(e) => setFormData({...formData, purchase_price: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
             placeholder="8000"
             className="border-orange-200"
             required
@@ -2223,10 +2224,10 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
 
         <div>
           <Label>Sell Price (₨)</Label>
-          <Input 
+          <Input
             type="number"
             value={formData.selling_price}
-            onChange={(e) => setFormData({...formData, selling_price: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
             placeholder="10000"
             className="border-orange-200"
             required
@@ -2237,10 +2238,10 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>Stock Quantity</Label>
-          <Input 
+          <Input
             type="number"
             value={formData.stock_quantity}
-            onChange={(e) => setFormData({...formData, stock_quantity: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
             placeholder="50"
             className="border-orange-200"
             required
@@ -2249,10 +2250,10 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
 
         <div>
           <Label>Low Stock Alert</Label>
-          <Input 
+          <Input
             type="number"
             value={formData.low_stock_alert}
-            onChange={(e) => setFormData({...formData, low_stock_alert: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, low_stock_alert: e.target.value })}
             placeholder="5"
             className="border-orange-200"
           />
@@ -2261,17 +2262,17 @@ function AddBatteryForm({ onSuccess, editingItem, onCancel, user }) {
 
       <div>
         <Label>Supplier (Optional)</Label>
-        <Input 
+        <Input
           value={formData.supplier}
-          onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
           placeholder="Supplier name"
           className="border-orange-200"
         />
       </div>
 
       <div className="flex space-x-2 pt-4">
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="flex-1 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
         >
           {editingItem ? 'Update Battery' : 'Add Battery'}
@@ -2296,13 +2297,13 @@ function SalesView({ sales, inventory, onRefresh, user }) {
     const battery = inventory.find(item => item.id === sale.battery_id);
     const batteryName = battery ? `${battery.brand} ${battery.capacity} ${battery.model}` : '';
     const matchesSearch = batteryName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (sale.customer_name && sale.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+      (sale.customer_name && sale.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
+
     if (dateFilter === 'all') return matchesSearch;
-    
+
     const saleDate = new Date(sale.sale_date);
     const today = new Date();
-    
+
     if (dateFilter === 'today') {
       return matchesSearch && saleDate.toDateString() === today.toDateString();
     } else if (dateFilter === 'week') {
@@ -2312,7 +2313,7 @@ function SalesView({ sales, inventory, onRefresh, user }) {
       const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
       return matchesSearch && saleDate >= monthAgo;
     }
-    
+
     return matchesSearch;
   }).sort((a, b) => new Date(b.sale_date) - new Date(a.sale_date));
 
@@ -2325,7 +2326,7 @@ function SalesView({ sales, inventory, onRefresh, user }) {
           </h2>
           <p className="text-gray-600">Track all your sales</p>
         </div>
-        
+
         <Dialog open={isAddSaleOpen} onOpenChange={setIsAddSaleOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700">
@@ -2334,7 +2335,7 @@ function SalesView({ sales, inventory, onRefresh, user }) {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
-            <RecordSaleForm 
+            <RecordSaleForm
               inventory={inventory}
               onSuccess={() => {
                 setIsAddSaleOpen(false);
@@ -2467,7 +2468,7 @@ function SalesView({ sales, inventory, onRefresh, user }) {
               {sales.length === 0 ? 'Start by recording your first sale' : 'Try changing your search or filter'}
             </p>
             {sales.length === 0 && (
-              <Button 
+              <Button
                 onClick={() => setIsAddSaleOpen(true)}
                 className="bg-gradient-to-r from-orange-500 to-amber-600"
               >
@@ -2500,7 +2501,7 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!selectedBattery) return;
 
     const saleId = Date.now().toString();
@@ -2525,8 +2526,8 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
 
     // Update inventory
     const currentInventory = OfflineStorage.getInventory(user.shop_id);
-    const updatedInventory = currentInventory.map(item => 
-      item.id === formData.battery_id 
+    const updatedInventory = currentInventory.map(item =>
+      item.id === formData.battery_id
         ? { ...item, stock_quantity: item.stock_quantity - parseInt(formData.quantity_sold) }
         : item
     );
@@ -2547,8 +2548,8 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
     onSuccess();
   };
 
-  const totalAmount = formData.unit_price && formData.quantity_sold 
-    ? parseFloat(formData.unit_price) * parseInt(formData.quantity_sold) 
+  const totalAmount = formData.unit_price && formData.quantity_sold
+    ? parseFloat(formData.unit_price) * parseInt(formData.quantity_sold)
     : 0;
   const totalProfit = selectedBattery && formData.unit_price && formData.quantity_sold
     ? (parseFloat(formData.unit_price) - selectedBattery.purchase_price) * parseInt(formData.quantity_sold)
@@ -2557,7 +2558,7 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
   if (showReceipt && completedSale && selectedBatteryData) {
     const shopConfig = OfflineStorage.getShopConfig(user.shop_id);
     return (
-      <Receipt 
+      <Receipt
         sale={completedSale}
         battery={selectedBatteryData}
         shopConfig={shopConfig}
@@ -2582,7 +2583,7 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
         <Select value={formData.battery_id} onValueChange={(value) => {
           const battery = availableInventory.find(item => item.id === value);
           setFormData({
-            ...formData, 
+            ...formData,
             battery_id: value,
             unit_price: battery ? battery.selling_price.toString() : ''
           });
@@ -2603,7 +2604,7 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
       {selectedBattery && (
         <Alert className="bg-blue-50 border-blue-200">
           <AlertDescription>
-            Available: <strong>{selectedBattery.stock_quantity} units</strong> | 
+            Available: <strong>{selectedBattery.stock_quantity} units</strong> |
             Suggested Price: <strong>₨ {selectedBattery.selling_price.toLocaleString()}</strong>
           </AlertDescription>
         </Alert>
@@ -2612,10 +2613,10 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>Quantity</Label>
-          <Input 
+          <Input
             type="number"
             value={formData.quantity_sold}
-            onChange={(e) => setFormData({...formData, quantity_sold: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, quantity_sold: e.target.value })}
             min="1"
             max={selectedBattery?.stock_quantity || 1}
             className="border-orange-200"
@@ -2625,10 +2626,10 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
 
         <div>
           <Label>Unit Price (₨)</Label>
-          <Input 
+          <Input
             type="number"
             value={formData.unit_price}
-            onChange={(e) => setFormData({...formData, unit_price: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
             placeholder="Selling price"
             className="border-orange-200"
             required
@@ -2638,9 +2639,9 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
 
       <div>
         <Label>Customer Name (Optional)</Label>
-        <Input 
+        <Input
           value={formData.customer_name}
-          onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
           placeholder="Customer name"
           className="border-orange-200"
         />
@@ -2648,9 +2649,9 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
 
       <div>
         <Label>Customer Phone (Optional)</Label>
-        <Input 
+        <Input
           value={formData.customer_phone}
-          onChange={(e) => setFormData({...formData, customer_phone: e.target.value})}
+          onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
           placeholder="Phone number"
           className="border-orange-200"
         />
@@ -2665,9 +2666,9 @@ function RecordSaleForm({ inventory, onSuccess, user }) {
         </div>
       )}
 
-      <Button 
-        type="submit" 
-        className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700" 
+      <Button
+        type="submit"
+        className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
         disabled={!formData.battery_id || !formData.unit_price}
       >
         <DollarSign className="h-4 w-4 mr-2" />
@@ -2706,24 +2707,24 @@ function AnalyticsView({ inventory, sales, user }) {
 
   const getDateRangeFromFilter = (filter) => {
     if (filter === 'all') return null;
-    
+
     const today = new Date();
     const ranges = {
       today: { from: new Date(today.toDateString()), to: today },
       week: { from: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), to: today },
       month: { from: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), to: today }
     };
-    
+
     return ranges[filter] || null;
   };
 
   // Filter sales based on time
   const filteredSales = sales.filter(sale => {
     if (timeFilter === 'all') return true;
-    
+
     const saleDate = new Date(sale.sale_date);
     const today = new Date();
-    
+
     if (timeFilter === 'today') {
       return saleDate.toDateString() === today.toDateString();
     } else if (timeFilter === 'week') {
@@ -2733,13 +2734,13 @@ function AnalyticsView({ inventory, sales, user }) {
       const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
       return saleDate >= monthAgo;
     }
-    
+
     return true;
   });
 
   // Filter inventory based on brand
-  const filteredInventory = brandFilter === 'all' 
-    ? inventory 
+  const filteredInventory = brandFilter === 'all'
+    ? inventory
     : inventory.filter(item => item.brand === brandFilter);
 
   // Calculate analytics
@@ -2804,24 +2805,24 @@ function AnalyticsView({ inventory, sales, user }) {
           </h2>
           <p className="text-gray-600">Analytics and insights</p>
         </div>
-        
+
         {/* Export Buttons */}
         <div className="flex flex-wrap gap-2">
           <div className="flex items-center space-x-2">
             <Label className="text-sm font-medium">Inventory:</Label>
-            <Button 
-              onClick={handleExportInventoryToExcel} 
-              size="sm" 
-              variant="outline" 
+            <Button
+              onClick={handleExportInventoryToExcel}
+              size="sm"
+              variant="outline"
               className="border-green-200 hover:bg-green-50"
             >
               <Download className="h-4 w-4 mr-1" />
               Excel
             </Button>
-            <Button 
-              onClick={handleExportInventoryToPDF} 
-              size="sm" 
-              variant="outline" 
+            <Button
+              onClick={handleExportInventoryToPDF}
+              size="sm"
+              variant="outline"
               className="border-red-200 hover:bg-red-50"
             >
               <FileText className="h-4 w-4 mr-1" />
@@ -2830,19 +2831,19 @@ function AnalyticsView({ inventory, sales, user }) {
           </div>
           <div className="flex items-center space-x-2">
             <Label className="text-sm font-medium">Sales:</Label>
-            <Button 
-              onClick={handleExportSalesToExcel} 
-              size="sm" 
-              variant="outline" 
+            <Button
+              onClick={handleExportSalesToExcel}
+              size="sm"
+              variant="outline"
               className="border-green-200 hover:bg-green-50"
             >
               <Download className="h-4 w-4 mr-1" />
               Excel
             </Button>
-            <Button 
-              onClick={handleExportSalesToPDF} 
-              size="sm" 
-              variant="outline" 
+            <Button
+              onClick={handleExportSalesToPDF}
+              size="sm"
+              variant="outline"
               className="border-red-200 hover:bg-red-50"
             >
               <FileText className="h-4 w-4 mr-1" />
@@ -3096,7 +3097,7 @@ function SettingsView({ user, onRefresh }) {
         ...shopConfig,
         users: [...(shopConfig.users || []), newUser]
       };
-      
+
       OfflineStorage.saveShopConfig(user.shop_id, updatedConfig);
       setShopConfig(updatedConfig);
       setNewUser({ username: '', password: '', name: '', role: 'cashier' });
@@ -3112,7 +3113,7 @@ function SettingsView({ user, onRefresh }) {
         ...shopConfig,
         users: shopConfig.users?.filter(u => u.username !== username) || []
       };
-      
+
       OfflineStorage.saveShopConfig(user.shop_id, updatedConfig);
       setShopConfig(updatedConfig);
       setMessage({ type: 'success', text: 'User removed successfully!' });
@@ -3180,7 +3181,7 @@ function SettingsView({ user, onRefresh }) {
                 <Label>Shop Name</Label>
                 <Input
                   value={editData.shop_name || ''}
-                  onChange={(e) => setEditData({...editData, shop_name: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, shop_name: e.target.value })}
                   className="border-orange-200 focus:border-orange-400"
                 />
               </div>
@@ -3188,7 +3189,7 @@ function SettingsView({ user, onRefresh }) {
                 <Label>Proprietor Name</Label>
                 <Input
                   value={editData.proprietor_name || ''}
-                  onChange={(e) => setEditData({...editData, proprietor_name: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, proprietor_name: e.target.value })}
                   className="border-orange-200 focus:border-orange-400"
                 />
               </div>
@@ -3196,7 +3197,7 @@ function SettingsView({ user, onRefresh }) {
                 <Label>Contact Number</Label>
                 <Input
                   value={editData.contact_number || ''}
-                  onChange={(e) => setEditData({...editData, contact_number: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, contact_number: e.target.value })}
                   className="border-orange-200 focus:border-orange-400"
                 />
               </div>
@@ -3205,7 +3206,7 @@ function SettingsView({ user, onRefresh }) {
                 <Input
                   type="email"
                   value={editData.email || ''}
-                  onChange={(e) => setEditData({...editData, email: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                   className="border-orange-200 focus:border-orange-400"
                 />
               </div>
@@ -3213,7 +3214,7 @@ function SettingsView({ user, onRefresh }) {
                 <Label>Address</Label>
                 <Input
                   value={editData.address || ''}
-                  onChange={(e) => setEditData({...editData, address: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, address: e.target.value })}
                   className="border-orange-200 focus:border-orange-400"
                 />
               </div>
@@ -3281,7 +3282,7 @@ function SettingsView({ user, onRefresh }) {
                     <Label>Username</Label>
                     <Input
                       value={newUser.username}
-                      onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                      onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
                       placeholder="Enter username"
                       className="border-orange-200 focus:border-orange-400"
                     />
@@ -3291,7 +3292,7 @@ function SettingsView({ user, onRefresh }) {
                     <Input
                       type="password"
                       value={newUser.password}
-                      onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                       placeholder="Enter password"
                       className="border-orange-200 focus:border-orange-400"
                     />
@@ -3300,14 +3301,14 @@ function SettingsView({ user, onRefresh }) {
                     <Label>Full Name</Label>
                     <Input
                       value={newUser.name}
-                      onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                      onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
                       placeholder="Enter full name"
                       className="border-orange-200 focus:border-orange-400"
                     />
                   </div>
                   <div>
                     <Label>Role</Label>
-                    <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value})}>
+                    <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
                       <SelectTrigger className="border-orange-200 focus:border-orange-400">
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
