@@ -465,6 +465,749 @@ function ShopSetupScreen({ onSetupComplete }) {
   }
 }
 
+// Account Recovery Screen Component
+function AccountRecoveryScreen({ onBack }) {
+  const [recoveryMethod, setRecoveryMethod] = useState(''); // 'admin' or 'code'
+  
+  if (!recoveryMethod) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <User className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
+              Account Recovery
+            </CardTitle>
+            <CardDescription className="text-gray-600">Choose how you want to recover access</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Button 
+                onClick={() => setRecoveryMethod('admin')}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12"
+              >
+                <User className="h-5 w-5 mr-2" />
+                Admin Recovery Service
+              </Button>
+              <p className="text-xs text-gray-500 px-2">Contact system administrator to reset your credentials</p>
+              
+              <Button 
+                onClick={() => setRecoveryMethod('code')}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white h-12"
+              >
+                <Eye className="h-5 w-5 mr-2" />
+                Use Recovery Code
+              </Button>
+              <p className="text-xs text-gray-500 px-2">Use the recovery codes you saved during setup</p>
+            </div>
+
+            <div className="pt-4 border-t">
+              <Button 
+                onClick={onBack}
+                variant="outline"
+                className="w-full border-orange-200 hover:bg-orange-50"
+              >
+                Back to Login
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (recoveryMethod === 'admin') {
+    return <AdminRecoveryScreen onBack={() => setRecoveryMethod('')} />;
+  }
+
+  if (recoveryMethod === 'code') {
+    return <RecoveryCodeScreen onBack={() => setRecoveryMethod('')} />;
+  }
+}
+
+// Admin Recovery Screen
+function AdminRecoveryScreen({ onBack }) {
+  const [step, setStep] = useState(1); // 1: admin login, 2: search shop, 3: reset credentials
+  const [adminAuth, setAdminAuth] = useState({ adminKey: '', username: '', password: '' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedShop, setSelectedShop] = useState(null);
+  const [newCredentials, setNewCredentials] = useState({ username: '', password: '', targetUser: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/authenticate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          admin_key: adminAuth.adminKey,
+          username: adminAuth.username,
+          password: adminAuth.password
+        }),
+      });
+
+      if (response.ok) {
+        setStep(2);
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Invalid admin credentials');
+      }
+    } catch (err) {
+      setError('Failed to authenticate admin. Please check your connection.');
+    }
+    
+    setLoading(false);
+  };
+
+  const handleShopSearch = async (e) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) {
+      setError('Please enter search term');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/search-shops`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...adminAuth,
+          search_term: searchTerm
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.shops);
+        if (data.shops.length === 0) {
+          setError('No shops found matching your search');
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Search failed');
+      }
+    } catch (err) {
+      setError('Search failed. Please check your connection.');
+    }
+    
+    setLoading(false);
+  };
+
+  const handleCredentialReset = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/reset-shop-credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          admin_key: adminAuth.adminKey,
+          username: adminAuth.username,
+          password: adminAuth.password,
+          shop_id: selectedShop.shop_id,
+          new_username: newCredentials.username,
+          new_password: newCredentials.password,
+          target_user: newCredentials.targetUser
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess(`Credentials successfully reset for shop: ${data.shop_name}`);
+        
+        // Update local storage if shop exists locally
+        const shopConfig = OfflineStorage.getShopConfig(selectedShop.shop_id);
+        if (shopConfig) {
+          const updatedUsers = shopConfig.users.map(user => 
+            user.username === newCredentials.targetUser
+              ? { ...user, username: newCredentials.username, password: newCredentials.password }
+              : user
+          );
+          OfflineStorage.saveShopConfig(selectedShop.shop_id, { ...shopConfig, users: updatedUsers });
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Failed to reset credentials');
+      }
+    } catch (err) {
+      setError('Reset failed. Please check your connection.');
+    }
+    
+    setLoading(false);
+  };
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <User className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Reset Successful!
+            </CardTitle>
+          </CardHeader>
+          
+          <CardContent className="space-y-4 text-center">
+            <Alert className="border-green-200 bg-green-50">
+              <AlertDescription className="text-green-700">{success}</AlertDescription>
+            </Alert>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded p-4">
+              <h4 className="font-semibold text-blue-800 mb-2">New Credentials:</h4>
+              <p className="text-sm text-blue-700"><strong>Shop ID:</strong> {selectedShop.shop_id}</p>
+              <p className="text-sm text-blue-700"><strong>Username:</strong> {newCredentials.username}</p>
+              <p className="text-sm text-blue-700"><strong>Password:</strong> {newCredentials.password}</p>
+            </div>
+
+            <Button 
+              onClick={onBack}
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
+            >
+              Back to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (step === 1) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <User className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Admin Recovery Access
+            </CardTitle>
+            <CardDescription className="text-gray-600">Enter admin credentials to help recover shop access</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div>
+                <Label>Admin Key</Label>
+                <Input
+                  value={adminAuth.adminKey}
+                  onChange={(e) => setAdminAuth({...adminAuth, adminKey: e.target.value})}
+                  placeholder="Enter admin key"
+                  className="border-blue-200 focus:border-blue-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>Admin Username</Label>
+                <Input
+                  value={adminAuth.username}
+                  onChange={(e) => setAdminAuth({...adminAuth, username: e.target.value})}
+                  placeholder="Enter admin username"
+                  className="border-blue-200 focus:border-blue-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>Admin Password</Label>
+                <Input
+                  type="password"
+                  value={adminAuth.password}
+                  onChange={(e) => setAdminAuth({...adminAuth, password: e.target.value})}
+                  placeholder="Enter admin password"
+                  className="border-blue-200 focus:border-blue-400"
+                  required
+                />
+              </div>
+
+              {error && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                disabled={loading}
+              >
+                {loading ? 'Authenticating...' : 'Access Admin Panel'}
+              </Button>
+            </form>
+
+            <div className="pt-4 border-t">
+              <Button 
+                onClick={onBack}
+                variant="outline"
+                className="w-full border-orange-200 hover:bg-orange-50"
+              >
+                Back to Recovery Options
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (step === 2) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Search Shop for Recovery
+            </CardTitle>
+            <CardDescription className="text-gray-600">Search by shop name, proprietor, phone, or address</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <form onSubmit={handleShopSearch} className="space-y-4">
+              <div className="flex space-x-2">
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Enter shop name, owner name, phone, or address..."
+                  className="border-blue-200 focus:border-blue-400 flex-1"
+                />
+                <Button 
+                  type="submit" 
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600"
+                  disabled={loading}
+                >
+                  {loading ? 'Searching...' : 'Search'}
+                </Button>
+              </div>
+            </form>
+
+            {error && (
+              <Alert className="border-red-200 bg-red-50">
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+                <AlertDescription className="text-red-700">{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {searchResults.length > 0 && (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                <h4 className="font-semibold text-gray-800">Found {searchResults.length} shop(s):</h4>
+                {searchResults.map((shop) => (
+                  <Card key={shop.shop_id} className="border-blue-200 cursor-pointer hover:bg-blue-50" onClick={() => {
+                    setSelectedShop(shop);
+                    setStep(3);
+                  }}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h5 className="font-semibold text-blue-800">{shop.shop_name}</h5>
+                          <p className="text-sm text-gray-600">Owner: {shop.proprietor_name}</p>
+                          <p className="text-sm text-gray-600">Phone: {shop.contact_number}</p>
+                          <p className="text-sm text-gray-600">ID: {shop.shop_id}</p>
+                        </div>
+                        <Badge variant="secondary">{shop.users_count} users</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            <div className="pt-4 border-t">
+              <Button 
+                onClick={() => setStep(1)}
+                variant="outline"
+                className="w-full border-orange-200 hover:bg-orange-50"
+              >
+                Back to Admin Login
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (step === 3) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Reset Shop Credentials
+            </CardTitle>
+            <CardDescription className="text-gray-600">Reset login details for {selectedShop.shop_name}</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <h4 className="font-semibold text-blue-800 mb-1">Shop Details:</h4>
+              <p className="text-sm text-blue-700">Name: {selectedShop.shop_name}</p>
+              <p className="text-sm text-blue-700">Owner: {selectedShop.proprietor_name}</p>
+              <p className="text-sm text-blue-700">ID: {selectedShop.shop_id}</p>
+            </div>
+
+            <form onSubmit={handleCredentialReset} className="space-y-4">
+              <div>
+                <Label>Current Username to Reset</Label>
+                <Input
+                  value={newCredentials.targetUser}
+                  onChange={(e) => setNewCredentials({...newCredentials, targetUser: e.target.value})}
+                  placeholder="Enter current username to reset"
+                  className="border-green-200 focus:border-green-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>New Username</Label>
+                <Input
+                  value={newCredentials.username}
+                  onChange={(e) => setNewCredentials({...newCredentials, username: e.target.value})}
+                  placeholder="Enter new username"
+                  className="border-green-200 focus:border-green-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>New Password</Label>
+                <Input
+                  type="password"
+                  value={newCredentials.password}
+                  onChange={(e) => setNewCredentials({...newCredentials, password: e.target.value})}
+                  placeholder="Enter new password"
+                  className="border-green-200 focus:border-green-400"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {error && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                disabled={loading}
+              >
+                {loading ? 'Resetting...' : 'Reset Credentials'}
+              </Button>
+            </form>
+
+            <div className="pt-4 border-t">
+              <Button 
+                onClick={() => setStep(2)}
+                variant="outline"
+                className="w-full border-orange-200 hover:bg-orange-50"
+              >
+                Back to Search
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+}
+
+// Recovery Code Screen
+function RecoveryCodeScreen({ onBack }) {
+  const [step, setStep] = useState(1); // 1: enter code + shop ID, 2: reset credentials
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [shopId, setShopId] = useState('');
+  const [newCredentials, setNewCredentials] = useState({ username: '', password: '', targetUser: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+
+  const handleValidateCode = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/recovery/validate-code/${recoveryCode}/${shopId}`);
+
+      if (response.ok) {
+        setStep(2);
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Invalid recovery code or shop ID');
+      }
+    } catch (err) {
+      setError('Validation failed. Please check your connection.');
+    }
+    
+    setLoading(false);
+  };
+
+  const handleCredentialReset = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/recovery/use-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recovery_code: recoveryCode,
+          shop_id: shopId,
+          new_username: newCredentials.username,
+          new_password: newCredentials.password,
+          target_user: newCredentials.targetUser
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess(`Credentials successfully reset using recovery code!`);
+        
+        // Update local storage
+        const shopConfig = OfflineStorage.getShopConfig(shopId);
+        if (shopConfig) {
+          const updatedUsers = shopConfig.users.map(user => 
+            user.username === newCredentials.targetUser
+              ? { ...user, username: newCredentials.username, password: newCredentials.password }
+              : user
+          );
+          OfflineStorage.saveShopConfig(shopId, { ...shopConfig, users: updatedUsers });
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Failed to reset credentials');
+      }
+    } catch (err) {
+      setError('Reset failed. Please check your connection.');
+    }
+    
+    setLoading(false);
+  };
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Eye className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Recovery Successful!
+            </CardTitle>
+          </CardHeader>
+          
+          <CardContent className="space-y-4 text-center">
+            <Alert className="border-green-200 bg-green-50">
+              <AlertDescription className="text-green-700">{success}</AlertDescription>
+            </Alert>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded p-4">
+              <h4 className="font-semibold text-blue-800 mb-2">Your New Login Details:</h4>
+              <p className="text-sm text-blue-700"><strong>Shop ID:</strong> {shopId}</p>
+              <p className="text-sm text-blue-700"><strong>Username:</strong> {newCredentials.username}</p>
+              <p className="text-sm text-blue-700"><strong>Password:</strong> {newCredentials.password}</p>
+            </div>
+
+            <Alert className="border-orange-200 bg-orange-50">
+              <AlertDescription className="text-orange-700">
+                ⚠️ Your recovery code has been used and is no longer valid. Save your new credentials safely!
+              </AlertDescription>
+            </Alert>
+
+            <Button 
+              onClick={onBack}
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
+            >
+              Back to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (step === 1) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Eye className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Use Recovery Code
+            </CardTitle>
+            <CardDescription className="text-gray-600">Enter your recovery code and Shop ID to reset credentials</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <form onSubmit={handleValidateCode} className="space-y-4">
+              <div>
+                <Label>Recovery Code</Label>
+                <Input
+                  value={recoveryCode}
+                  onChange={(e) => setRecoveryCode(e.target.value.toUpperCase())}
+                  placeholder="REC-XXXX-XXXX-XXXX-XXXX"
+                  className="border-green-200 focus:border-green-400 font-mono"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter one of the recovery codes you saved during setup
+                </p>
+              </div>
+              
+              <div>
+                <Label>Shop ID</Label>
+                <Input
+                  value={shopId}
+                  onChange={(e) => setShopId(e.target.value)}
+                  placeholder="SHOP-XXXXXX-XXXXXX"
+                  className="border-green-200 focus:border-green-400 font-mono"
+                  required
+                />
+              </div>
+
+              {error && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                disabled={loading}
+              >
+                {loading ? 'Validating...' : 'Validate Recovery Code'}
+              </Button>
+            </form>
+
+            <div className="pt-4 border-t">
+              <Button 
+                onClick={onBack}
+                variant="outline"
+                className="w-full border-orange-200 hover:bg-orange-50"
+              >
+                Back to Recovery Options
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (step === 2) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Reset Your Credentials
+            </CardTitle>
+            <CardDescription className="text-gray-600">Enter new login details for your shop</CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <Alert className="border-green-200 bg-green-50">
+              <AlertDescription className="text-green-700">
+                ✅ Recovery code validated successfully! You can now reset your credentials.
+              </AlertDescription>
+            </Alert>
+
+            <form onSubmit={handleCredentialReset} className="space-y-4">
+              <div>
+                <Label>Current Username to Reset</Label>
+                <Input
+                  value={newCredentials.targetUser}
+                  onChange={(e) => setNewCredentials({...newCredentials, targetUser: e.target.value})}
+                  placeholder="Enter current username to reset"
+                  className="border-green-200 focus:border-green-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>New Username</Label>
+                <Input
+                  value={newCredentials.username}
+                  onChange={(e) => setNewCredentials({...newCredentials, username: e.target.value})}
+                  placeholder="Enter new username"
+                  className="border-green-200 focus:border-green-400"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label>New Password</Label>
+                <Input
+                  type="password"
+                  value={newCredentials.password}
+                  onChange={(e) => setNewCredentials({...newCredentials, password: e.target.value})}
+                  placeholder="Enter new password"
+                  className="border-green-200 focus:border-green-400"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {error && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                disabled={loading}
+              >
+                {loading ? 'Resetting...' : 'Reset Credentials'}
+              </Button>
+            </form>
+
+            <div className="pt-4 border-t">
+              <Button 
+                onClick={() => setStep(1)}
+                variant="outline"
+                className="w-full border-orange-200 hover:bg-orange-50"
+              >
+                Back
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
 // REMOVED: ShopSelectionScreen component for security reasons
 // This component exposed all shops to unauthorized users
 
