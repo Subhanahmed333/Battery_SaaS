@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Plus, Package, ShoppingCart, BarChart3, AlertTriangle, Battery, Store, Menu, X, Home, TrendingUp, Eye, EyeOff, Zap, DollarSign, Calendar, Filter, Search, User, LogOut, Sun, Moon, Printer, Download, FileText, Settings } from 'lucide-react';
 import './App.css';
+import logo from 'src/logo_black.png';
 
 // Import Shadcn components
 import { Button } from './components/ui/button';
@@ -1282,8 +1283,12 @@ function SecureLoginScreen({ onLogin, onSetupNew }) {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Battery className="h-10 w-10 text-white" />
+          <div className="mx-auto mb-4 w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden">
+            <img
+              src={logo}
+              alt="Murick Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
             Murick Battery System
@@ -1453,8 +1458,12 @@ function App() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-amber-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <Battery className="h-8 w-8 text-white" />
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse overflow-hidden">
+            <img
+              src={logo}
+              alt="Murick Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
           <h2 className="text-xl font-semibold text-gray-700">Loading Murick...</h2>
         </div>
@@ -1477,8 +1486,12 @@ function App() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Battery className="h-6 w-6 text-white" />
+              <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg">
+                <img
+                  src={logo}
+                  alt="Murick Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Murick</h1>
@@ -1519,8 +1532,8 @@ function App() {
                   variant={currentView === item.id ? "default" : "ghost"}
                   onClick={() => setCurrentView(item.id)}
                   className={`flex items-center space-x-2 ${currentView === item.id
-                      ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white"
-                      : "hover:bg-orange-100"
+                    ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white"
+                    : "hover:bg-orange-100"
                     }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -1545,8 +1558,8 @@ function App() {
                         setIsMobileMenuOpen(false);
                       }}
                       className={`flex items-center justify-start space-x-2 w-full ${currentView === item.id
-                          ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white"
-                          : "hover:bg-orange-100"
+                        ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white"
+                        : "hover:bg-orange-100"
                         }`}
                     >
                       <Icon className="h-4 w-4" />

@@ -1,0 +1,10 @@
+Generated License Keys - 2025-08-16T01:34:52.718560
+============================================================
+Plan: basic
+Count: 5
+
+MBM-2025-BASIC-AEB47C
+MBM-2025-BASIC-D081FD
+MBM-2025-BASIC-A0D205
+MBM-2025-BASIC-667E1D
+MBM-2025-BASIC-118D25

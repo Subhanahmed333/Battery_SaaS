@@ -891,7 +891,7 @@ class MurickBatteryAPITester:
         admin_auth_data = {
             "admin_key": "MURICK_ADMIN_2024",
             "username": "murick_admin",
-            "password": "MurickAdmin@2024"
+            "password": "Admin@2024!Secure"
         }
         
         def check_admin_auth(data):
@@ -922,7 +922,7 @@ class MurickBatteryAPITester:
         admin_auth_data = {
             "admin_key": "INVALID_ADMIN_KEY",
             "username": "murick_admin",
-            "password": "MurickAdmin@2024"
+            "password": "Admin@2024!Secure"
         }
         
         return self.run_test(

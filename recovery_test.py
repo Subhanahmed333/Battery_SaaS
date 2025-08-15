@@ -75,7 +75,7 @@ class AccountRecoveryTester:
         admin_auth_data = {
             "admin_key": "MURICK_ADMIN_2024",
             "username": "murick_admin",
-            "password": "MurickAdmin@2024"
+            "password": "Admin@2024!Secure"
         }
         
         def check_admin_auth(data):
@@ -106,7 +106,7 @@ class AccountRecoveryTester:
         search_data = {
             "admin_key": "MURICK_ADMIN_2024",
             "username": "murick_admin",
-            "password": "MurickAdmin@2024",
+            "password": "Admin@2024!Secure",
             "search_term": "Khan"  # Should find Khan Battery Center
         }
         
@@ -142,7 +142,7 @@ class AccountRecoveryTester:
         success, response = self.run_test(
             "Admin Get Shop Details",
             "GET",
-            f"api/admin/shop-details/{self.existing_shop_id}?admin_key=MURICK_ADMIN_2024&username=murick_admin&password=MurickAdmin@2024",
+            f"api/admin/shop-details/{self.existing_shop_id}?admin_key=MURICK_ADMIN_2024&username=murick_admin&password=Admin@2024!Secure",
             200,
             check_response=check_shop_details
         )
@@ -160,7 +160,7 @@ class AccountRecoveryTester:
         success, shop_details = self.run_test(
             "Get Shop Details for Credential Reset",
             "GET",
-            f"api/admin/shop-details/{self.existing_shop_id}?admin_key=MURICK_ADMIN_2024&username=murick_admin&password=MurickAdmin@2024",
+            f"api/admin/shop-details/{self.existing_shop_id}?admin_key=MURICK_ADMIN_2024&username=murick_admin&password=Admin@2024!Secure",
             200
         )
         
@@ -173,7 +173,7 @@ class AccountRecoveryTester:
         reset_data = {
             "admin_key": "MURICK_ADMIN_2024",
             "username": "murick_admin",
-            "password": "MurickAdmin@2024",
+            "password": "Admin@2024!Secure",
             "shop_id": self.existing_shop_id,
             "new_username": "admin_reset_by_admin",
             "new_password": "newpassword123",
@@ -228,7 +228,7 @@ class AccountRecoveryTester:
         license_data = {
             "admin_key": "MURICK_ADMIN_2024",
             "username": "murick_admin",
-            "password": "MurickAdmin@2024",
+            "password": "Admin@2024!Secure",
             "plan": "premium",
             "shop_id": self.existing_shop_id
         }

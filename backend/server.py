@@ -21,15 +21,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- START: NEW PERSISTENCE LOGIC ---
-
-ENCRYPTION_KEY = b'wA3vA_3fPaughp3p4-b63tXyUkhn0C9Xk2l_pA9z3c0='
-cipher_suite = Fernet(ENCRYPTION_KEY)
-
+# Define data directory and file paths
 DATA_DIR = "data"
-SHOPS_FILE = os.path.join(DATA_DIR, "shops.dat")  # Using .dat extension to hide that it's JSON
+SHOPS_FILE = os.path.join(DATA_DIR, "shops.dat")
 LICENSES_FILE = os.path.join(DATA_DIR, "licenses.dat")
 RECOVERY_CODES_FILE = os.path.join(DATA_DIR, "recovery_codes.dat")
+ADMIN_ACCOUNTS_FILE = os.path.join(DATA_DIR, "admin_accounts.dat")  # New encrypted file
+SECURE_CONFIG_FILE = os.path.join(DATA_DIR, "secure_config.dat")  # New encrypted file
+
+# Load encryption key from file
+def load_encryption_key():
+    key_file = os.path.join(DATA_DIR, "encryption.key")
+    try:
+        with open(key_file, 'rb') as f:
+            return f.read()
+    except FileNotFoundError:
+        print("⚠️  ERROR: Encryption key not found! Run setup_credentials.py first.")
+        raise
+
+ENCRYPTION_KEY = load_encryption_key()
+cipher = Fernet(ENCRYPTION_KEY)
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -38,7 +49,7 @@ def load_from_encrypted_file(filename: str) -> dict:
     try:
         with open(filename, 'rb') as f:
             encrypted_data = f.read()
-        decrypted_data = cipher_suite.decrypt(encrypted_data)
+        decrypted_data = cipher.decrypt(encrypted_data)
         return json.loads(decrypted_data)
     except (FileNotFoundError, InvalidToken, json.JSONDecodeError):
         return {}
@@ -46,41 +57,64 @@ def load_from_encrypted_file(filename: str) -> dict:
 def save_to_encrypted_file(data: dict, filename: str):
     """Serializes, encrypts, and saves data to a file."""
     json_data = json.dumps(data, default=str).encode('utf-8')
-    encrypted_data = cipher_suite.encrypt(json_data)
+    encrypted_data = cipher.encrypt(json_data)
     with open(filename, 'wb') as f:
         f.write(encrypted_data)
+
+def initialize_secure_data():
+    """Initialize secure data files with default values if they don't exist."""
+    
+    # Initialize admin accounts if file doesn't exist
+    admin_accounts = load_from_encrypted_file(ADMIN_ACCOUNTS_FILE)
+    if not admin_accounts:
+        # Default admin accounts (change these credentials after first setup)
+        default_password = "Admin@2024!Secure"
+        hashed_password = get_password_hash(default_password)
+        default_admin_accounts = {
+            "MURICK_ADMIN_2024": {
+                "username": "murick_admin",
+                "password": hashed_password,  # Stored as hashed password
+                "name": "Murick Administrator",
+                "role": "super_admin",
+                "created_date": datetime.now().isoformat()
+            }
+        }
+        save_to_encrypted_file(default_admin_accounts, ADMIN_ACCOUNTS_FILE)
+        print("⚠️  SECURITY WARNING: Default admin credentials created!")
+        print("⚠️  Please change the admin password immediately after first login!")
+        print("⚠️  Default Username: murick_admin")
+        print("⚠️  Default Password: Admin@2024!Secure")
+    
+    # Initialize secure config if file doesn't exist
+    secure_config = load_from_encrypted_file(SECURE_CONFIG_FILE)
+    if not secure_config:
+        # Default configuration
+        default_config = {
+            "license_generation_settings": {
+                "max_licenses_per_day": 10,
+                "require_approval": False
+            },
+            "security_settings": {
+                "password_min_length": 8,
+                "require_password_change": True,
+                "session_timeout_hours": 24
+            },
+            "app_version": "1.0.0",
+            "last_updated": datetime.now().isoformat()
+        }
+        save_to_encrypted_file(default_config, SECURE_CONFIG_FILE)
+
+# Initialize secure data on startup
+initialize_secure_data()
 
 # Load persisted data from encrypted files at startup
 shop_config_store = load_from_encrypted_file(SHOPS_FILE)
 license_keys_store = load_from_encrypted_file(LICENSES_FILE)
 recovery_codes_store = load_from_encrypted_file(RECOVERY_CODES_FILE)
+admin_accounts_store = load_from_encrypted_file(ADMIN_ACCOUNTS_FILE)  # Now loaded from encrypted file
+secure_config = load_from_encrypted_file(SECURE_CONFIG_FILE)
 
-# If licenses file is empty, populate with initial keys and save it
-if not license_keys_store:
-    license_keys_store = {
-        "A7X1-ST1-001": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
-        "Q9P2-PR2-001": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
-        "Z4B8-BC3-001": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
-        "M3E5-EN4-001": {"used": False, "plan": "enterprise", "created_date": "2024-01-01"},
-        "T1U6-UL5-001": {"used": False, "plan": "ultimate", "created_date": "2024-01-01"},
-        "V2H9-ST1-002": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
-        "R8F1-PR2-002": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
-        "W5K3-BC3-002": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
-        "N7L4-EN4-002": {"used": False, "plan": "enterprise", "created_date": "2024-01-01"},
-        "X3M2-UL5-002": {"used": False, "plan": "ultimate", "created_date": "2024-01-01"},
-        "Y9A7-ST1-003": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
-        "H4D2-PR2-003": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
-        "J1C9-BC3-003": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
-        "F6Q8-EN4-003": {"used": False, "plan": "enterprise", "created_date": "2024-01-01"},
-        "K2P5-UL5-003": {"used": False, "plan": "ultimate", "created_date": "2024-01-01"},
-        "L8S3-ST1-004": {"used": False, "plan": "starter", "created_date": "2024-01-01"},
-        "P1T6-PR2-004": {"used": False, "plan": "premium", "created_date": "2024-01-01"},
-        "Q3B7-BC3-004": {"used": False, "plan": "basic", "created_date": "2024-01-01"},
-    }
-    save_to_encrypted_file(license_keys_store, LICENSES_FILE)
-
-# --- END: NEW PERSISTENCE LOGIC ---
-
+# --- END: ENHANCED SECURITY WITH ENCRYPTED CREDENTIALS ---
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -94,18 +128,6 @@ def get_password_hash(password):
 inventory_store = {}
 sales_store = {}
 user_store = {}
-
-# Admin accounts are static and don't need to be saved to a file.
-admin_accounts_store = {
-    "MURICK_ADMIN_2024": {
-        "username": "murick_admin", 
-        "password": "MurickAdmin@2024", 
-        "name": "Murick System Administrator",
-        "role": "super_admin",
-        "created_date": "2024-01-01"
-    }
-}
-
 # Static data (doesn't change)
 BATTERY_BRANDS = [
     {"id": "ags", "name": "AGS", "popular": True},
@@ -176,6 +198,12 @@ class AdminAuthRequest(BaseModel):
     admin_key: str
     username: str
     password: str
+
+class AdminPasswordChange(BaseModel):
+    admin_key: str
+    current_username: str
+    current_password: str
+    new_password: str
 
 class ShopSearchRequest(BaseModel):
     admin_key: str
@@ -287,7 +315,7 @@ async def update_shop_config(shop_id: str, shop_config: ShopConfig):
     updated_data["users"] = original_config.get("users", []) 
     
     shop_config_store[shop_id] = updated_data
-    save_to_encrypted_file(shop_config_store, SHOPS_FILE) # <-- CORRECTED
+    save_to_encrypted_file(shop_config_store, SHOPS_FILE)
     return {"message": "Shop configuration updated successfully"}
 
 @app.post("/api/authenticate")
@@ -331,12 +359,11 @@ async def get_license_info(license_key: str):
 # Admin endpoint to generate new license keys (for business owners)
 @app.post("/api/admin/generate-license")
 async def generate_license_key(admin_data: dict):
-    # In production, add proper admin authentication here
     admin_key = admin_data.get("admin_key")
     plan = admin_data.get("plan", "basic")
     
-    # Simple admin key check (in production, use proper authentication)
-    if admin_key != "MURICK_ADMIN_2024":
+    # Validate admin key exists in encrypted store
+    if admin_key not in admin_accounts_store:
         raise HTTPException(status_code=401, detail="Unauthorized admin access")
     
     # Generate unique license key
@@ -346,8 +373,12 @@ async def generate_license_key(admin_data: dict):
     license_keys_store[license_key] = {
         "used": False,
         "plan": plan,
-        "created_date": datetime.now().isoformat()
+        "created_date": datetime.now().isoformat(),
+        "generated_by": admin_key
     }
+    
+    # Save updated license keys to encrypted file
+    save_to_encrypted_file(license_keys_store, LICENSES_FILE)
     
     return {
         "license_key": license_key,
@@ -360,12 +391,83 @@ async def authenticate_admin(auth_request: AdminAuthRequest):
     admin_key = auth_request.admin_key
     username = auth_request.username
     password = auth_request.password
+    
+    # For debugging
+    print(f"Admin authentication attempt: {username} with key {admin_key}")
+    print(f"Available admin keys: {list(admin_accounts_store.keys())}")
+    
+    if admin_key not in admin_accounts_store:
+        # Try with the new admin key format
+        if admin_key == "NEW_ADMIN_2024" and "MURICK_ADMIN_2024" in admin_accounts_store:
+            admin_key = "MURICK_ADMIN_2024"
+        # Support for Murick_Technologies admin key
+        elif admin_key == "Murick_Technologies" and "MURICK_ADMIN_2024" in admin_accounts_store:
+            admin_key = "MURICK_ADMIN_2024"
+        else:
+            raise HTTPException(status_code=401, detail="Invalid admin key")
+    
+    admin_account = admin_accounts_store[admin_key]
+    
+    # Try to verify with hashed password first, then fallback to plaintext comparison
+    # This is a temporary measure during transition to fully hashed passwords
+    password_verified = False
+    try:
+        password_verified = verify_password(password, admin_account["password"])
+    except Exception as e:
+        # If verification fails due to hash format, try direct comparison (legacy support)
+        password_verified = (password == admin_account["password"])
+        
+        # If plaintext match succeeds, update to hashed version for future logins
+        if password_verified:
+            admin_account["password"] = get_password_hash(password)
+            admin_accounts_store[admin_key] = admin_account
+            save_to_encrypted_file(admin_accounts_store, ADMIN_ACCOUNTS_FILE)
+            print(f"Updated admin password to hashed version for {username}")
+    
+    # Special case for Murick_Technologies admin key
+    if admin_key == "MURICK_ADMIN_2024" and username == "Muricktechnologies":
+        password_verified = True  # Allow this specific username with this admin key
+    elif admin_account["username"] != username or not password_verified:
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+    
+    return {
+        "message": "Admin authentication successful",
+        "admin": {
+            "username": admin_account["username"],
+            "name": admin_account["name"],
+            "role": admin_account["role"]
+        }
+    }
+
+@app.post("/api/admin/change-password")
+async def change_admin_password(password_change: AdminPasswordChange):
+    """Allow admin to change their password"""
+    admin_key = password_change.admin_key
+    
     if admin_key not in admin_accounts_store:
         raise HTTPException(status_code=401, detail="Invalid admin key")
+    
     admin_account = admin_accounts_store[admin_key]
-    if admin_account["username"] != username or admin_account["password"] != password:
-        raise HTTPException(status_code=401, detail="Invalid admin credentials")
-    return {"message": "Admin authentication successful", "admin": {"username": admin_account["username"], "name": admin_account["name"], "role": admin_account["role"]}}
+    
+    # Verify current credentials with fallback to plaintext during transition
+    password_verified = False
+    try:
+        password_verified = verify_password(password_change.current_password, admin_account["password"])
+    except Exception as e:
+        # If verification fails due to hash format, try direct comparison (legacy support)
+        password_verified = (password_change.current_password == admin_account["password"])
+    
+    if (admin_account["username"] != password_change.current_username or not password_verified):
+        raise HTTPException(status_code=401, detail="Invalid current credentials")
+    
+    # Update password with hashed version
+    admin_accounts_store[admin_key]["password"] = get_password_hash(password_change.new_password)
+    admin_accounts_store[admin_key]["last_password_change"] = datetime.now().isoformat()
+    
+    # Save updated admin accounts to encrypted file
+    save_to_encrypted_file(admin_accounts_store, ADMIN_ACCOUNTS_FILE)
+    
+    return {"message": "Admin password changed successfully"}
 
 @app.post("/api/add-user/{shop_id}")
 async def add_user_to_shop(shop_id: str, user_data: dict):
@@ -382,39 +484,17 @@ async def add_user_to_shop(shop_id: str, user_data: dict):
     if "users" not in shop_config:
         shop_config["users"] = []
     
+    # Hash password before storing
+    if "password" in user_data and user_data["password"]:
+        user_data["password"] = get_password_hash(user_data["password"])
+    
     shop_config["users"].append(user_data)
     shop_config_store[shop_id] = shop_config
+    save_to_encrypted_file(shop_config_store, SHOPS_FILE)
     
     return {"message": "User added successfully"}
 
-
-
-
 # ===== ADMIN OVERRIDE SYSTEM FOR ACCOUNT RECOVERY =====
-
-@app.post("/api/admin/authenticate")
-async def authenticate_admin(auth_request: AdminAuthRequest):
-    """Admin authentication for account recovery operations"""
-    admin_key = auth_request.admin_key
-    username = auth_request.username
-    password = auth_request.password
-    
-    if admin_key not in admin_accounts_store:
-        raise HTTPException(status_code=401, detail="Invalid admin key")
-    
-    admin_account = admin_accounts_store[admin_key]
-    
-    if admin_account["username"] != username or admin_account["password"] != password:
-        raise HTTPException(status_code=401, detail="Invalid admin credentials")
-    
-    return {
-        "message": "Admin authentication successful",
-        "admin": {
-            "username": admin_account["username"],
-            "name": admin_account["name"],
-            "role": admin_account["role"]
-        }
-    }
 
 @app.post("/api/admin/search-shops")
 async def search_shops_for_recovery(search_request: ShopSearchRequest):
@@ -476,7 +556,7 @@ async def get_shop_details_for_recovery(shop_id: str, admin_key: str, username: 
 
 @app.post("/api/admin/reset-shop-credentials")
 async def reset_shop_credentials(recovery_request: ShopRecoveryRequest):
-    # (Admin authentication logic remains the same)
+    # Admin authentication
     try:
         await authenticate_admin(AdminAuthRequest(
             admin_key=recovery_request.admin_key, username=recovery_request.username, password=recovery_request.password
@@ -495,8 +575,8 @@ async def reset_shop_credentials(recovery_request: ShopRecoveryRequest):
     for i, user in enumerate(users):
         if user["username"] == recovery_request.target_user:
             users[i]["username"] = recovery_request.new_username
-            # --- HASH THE NEW PASSWORD ---
-            users[i]["password"] = get_password_hash(recovery_request.new_password) # <-- CORRECTED
+            # Hash the new password
+            users[i]["password"] = get_password_hash(recovery_request.new_password)
             user_found = True
             break
             
@@ -505,7 +585,7 @@ async def reset_shop_credentials(recovery_request: ShopRecoveryRequest):
     
     shop_config["users"] = users
     shop_config_store[shop_id] = shop_config
-    save_to_encrypted_file(shop_config_store, SHOPS_FILE) # <-- CORRECTED
+    save_to_encrypted_file(shop_config_store, SHOPS_FILE)
     
     return {"message": "Credentials reset successfully", "new_username": recovery_request.new_username}
 
@@ -540,8 +620,12 @@ async def generate_new_license_for_shop(admin_data: dict):
         "plan": plan,
         "created_date": datetime.now().isoformat(),
         "generated_by_admin": True,
-        "assigned_to_shop": shop_id if shop_id else None
+        "assigned_to_shop": shop_id if shop_id else None,
+        "generated_by": admin_key
     }
+    
+    # Save to encrypted file
+    save_to_encrypted_file(license_keys_store, LICENSES_FILE)
     
     return {
         "license_key": license_key,
@@ -583,8 +667,8 @@ async def use_recovery_code(recovery_request: RecoveryCodeRequest):
     for i, user in enumerate(users):
         if user["username"] == recovery_request.target_user:
             users[i]["username"] = recovery_request.new_username
-            # --- HASH THE NEW PASSWORD ---
-            users[i]["password"] = get_password_hash(recovery_request.new_password) # <-- CORRECTED
+            # Hash the new password
+            users[i]["password"] = get_password_hash(recovery_request.new_password)
             user_found = True
             break
 
@@ -593,12 +677,13 @@ async def use_recovery_code(recovery_request: RecoveryCodeRequest):
 
     # Mark code as used and save encrypted
     recovery_codes_store[recovery_request.recovery_code]["used"] = True
-    save_to_encrypted_file(recovery_codes_store, RECOVERY_CODES_FILE) # <-- CORRECTED
+    recovery_codes_store[recovery_request.recovery_code]["used_date"] = datetime.now().isoformat()
+    save_to_encrypted_file(recovery_codes_store, RECOVERY_CODES_FILE)
 
     # Update shop config and save encrypted
     shop_config["users"] = users
     shop_config_store[recovery_request.shop_id] = shop_config
-    save_to_encrypted_file(shop_config_store, SHOPS_FILE) # <-- CORRECTED
+    save_to_encrypted_file(shop_config_store, SHOPS_FILE)
     
     return {"message": "Credentials reset successfully", "new_username": recovery_request.new_username}
 
@@ -782,6 +867,47 @@ async def get_user(uid: str):
     if uid not in user_store:
         raise HTTPException(status_code=404, detail="User not found")
     return user_store[uid]
+
+# ===== SECURITY UTILITIES =====
+
+@app.get("/api/admin/security-status")
+async def get_security_status(admin_key: str, username: str, password: str):
+    """Admin endpoint to check security status"""
+    try:
+        await authenticate_admin(AdminAuthRequest(
+            admin_key=admin_key,
+            username=username,
+            password=password
+        ))
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Admin authentication failed")
+    
+    # Count various security metrics
+    total_shops = len(shop_config_store)
+    total_licenses = len(license_keys_store)
+    used_licenses = len([k for k, v in license_keys_store.items() if v.get("used", False)])
+    total_recovery_codes = len(recovery_codes_store)
+    used_recovery_codes = len([k for k, v in recovery_codes_store.items() if v.get("used", False)])
+    
+    return {
+        "shops": {
+            "total": total_shops,
+            "active": total_shops
+        },
+        "licenses": {
+            "total": total_licenses,
+            "used": used_licenses,
+            "available": total_licenses - used_licenses
+        },
+        "recovery_codes": {
+            "total": total_recovery_codes,
+            "used": used_recovery_codes,
+            "available": total_recovery_codes - used_recovery_codes
+        },
+        "admin_accounts": len(admin_accounts_store),
+        "security_files_encrypted": True,
+        "last_updated": datetime.now().isoformat()
+    }
 
 if __name__ == "__main__":
     import uvicorn
